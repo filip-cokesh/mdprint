@@ -1,0 +1,12 @@
+[pack]
+name = "demo"
+
+[company]
+name = "Demo s.r.o."
+web = "demo.example"
+
+[[fonts]]
+file = "fonts/DemoMono-Italic.woff2"
+family = "Demo Mono"
+weight = 400
+style = "italic"

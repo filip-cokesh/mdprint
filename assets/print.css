@@ -1,0 +1,82 @@
+/* ===== print.css — tisk z Chromu (Ctrl+P) =====
+   Číslování stránek je mimo rozsah v1; stránkový rám drží @page,
+   případný Paged.js se později přidá jako samostatná vrstva nad tímto CSS. */
+
+@page {
+  size: {{ page_size }};
+  margin: {{ page_margin }};
+}
+
+@media print {
+  html { font-size: 10.5pt; }
+
+  /* tisk je vždy světlý — bez ohledu na režim obrazovky; přepínač se netiskne */
+  body { color: #000; background: #fff; }
+  label.theme-switch { display: none; }
+
+  article.doc {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  p {
+    text-align: justify;
+    hyphens: manual;
+    orphans: 3;
+    widows: 3;
+  }
+
+  h1, h2, h3, h4 { break-after: avoid; }
+  h1, h2, h3, h4, h5, h6 { break-inside: avoid; }
+
+  figure, tr, pre { break-inside: avoid; }
+  blockquote { break-inside: avoid; }
+
+  /* opakování hlavičky tabulky přes stránky — vyžaduje skutečný table display
+     (screen.css dává tabulkám display: block kvůli scrollu na mobilu) */
+  table {
+    display: table;
+    width: auto;
+    max-width: 100%;
+    overflow-x: visible;
+  }
+  thead { display: table-header-group; }
+
+  /* blokové vzorce v tisku nerolují — případný přesah se nezlomí, jen ořízne */
+  .katex-display { overflow-x: visible; }
+
+  /* dlouhé řádky kódu: zalamovat; visutou indentaci zalomených řádků
+     zajistí per-line spany ze syntect (fáze 3): pre .line */
+  pre {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    overflow-x: visible;
+    background: #fff;
+    border: 1px solid #999;
+  }
+  pre .line {
+    display: block;
+    padding-left: 2ch;
+    text-indent: -2ch;
+  }
+  code { background: none; padding: 0; }
+
+  img {
+    max-width: 100%;
+    max-height: 20cm;
+  }
+
+  * { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+
+  /* odkazy: text ponechat, za externí odkaz vypsat URL menším písmem */
+  a { color: #000; text-decoration: none; }
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.78em;
+    color: #333;
+    overflow-wrap: anywhere;
+  }
+  /* … ale ne u interních kotev a poznámek pod čarou */
+  a.anchor::after, .footnote-ref a::after, a.footnote-backref::after { content: none; }
+}

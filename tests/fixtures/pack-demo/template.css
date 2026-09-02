@@ -1,0 +1,24 @@
+/* Demo template pack — testovací fixture. */
+:root { --c-link: #0a7d40; }
+
+header.brand-header {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  border-bottom: 2px solid #0a7d40;
+  break-inside: avoid;
+}
+.brand-header img { width: 40px; height: 40px; display: block; }
+
+/* regrese specificity: výchozí skrytí tmavého loga musí přebít pravidlo výše */
+.brand-header .brand-logo-dark { display: none; }
+@media screen and (prefers-color-scheme: dark) {
+  html:not(:has(#theme-invert:checked)) .brand-logo-light { display: none; }
+  html:not(:has(#theme-invert:checked)) .brand-logo-dark { display: block; }
+}
+@media screen and (prefers-color-scheme: light) {
+  html:has(#theme-invert:checked) .brand-logo-light { display: none; }
+  html:has(#theme-invert:checked) .brand-logo-dark { display: block; }
+}
+
+footer.brand-footer { border-top: 1px solid #999; font-size: 0.8rem; }

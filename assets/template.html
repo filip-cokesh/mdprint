@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="mdprint">
+{%- if author %}
+<meta name="author" content="{{ author }}">
+{%- endif %}
+<title>{{ title }}</title>
+<style>
+{{ fonts_css }}
+{{ katex_fonts_css }}
+{{ vars_css }}
+{{ katex_css }}
+{{ syntax_css }}
+{{ screen_css }}
+{{ print_css }}
+{{ pack_fonts_css }}
+{{ pack_css }}
+</style>
+</head>
+<body>
+<label class="theme-switch" title="Světlý / tmavý režim"><input type="checkbox" id="theme-invert">◐</label>
+<article class="doc">
+{%- if brand %}
+<header class="brand-header">
+{%- if logo_light %}
+<img class="brand-logo-light" src="{{ logo_light }}" alt="logo">
+{%- endif %}
+{%- if logo_dark %}
+<img class="brand-logo-dark" src="{{ logo_dark }}" alt="logo">
+{%- endif %}
+{%- if company_name %}
+<span class="brand-name">{{ company_name }}</span>
+{%- endif %}
+</header>
+{%- endif %}
+{%- if show_header %}
+<header class="doc-header">
+<h1 class="doc-title">{{ title }}</h1>
+{%- if byline %}
+<p class="doc-byline">{{ byline }}</p>
+{%- endif %}
+</header>
+{%- endif %}
+{%- if toc %}
+{{ toc }}
+{%- endif %}
+{{ body }}
+{%- if brand and (company_name or company_line) %}
+<footer class="brand-footer">
+{%- if company_name %}
+<span class="brand-footer-name">{{ company_name }}</span>
+{%- endif %}
+{%- if company_line %}
+<br>{{ company_line }}
+{%- endif %}
+</footer>
+{%- endif %}
+</article>
+</body>
+</html>

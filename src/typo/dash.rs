@@ -1,0 +1,61 @@
+//! Pomlčky a rozsahy. Spojovník uvnitř slov (`modro-zelený`) zůstává.
+
+use std::sync::LazyLock;
+
+use fancy_regex::Regex;
+
+/// ` - ` → `&nbsp;– ` (en dash). Mezera před pomlčkou je nezlomitelná —
+/// pomlčka nesmí začínat řádek (ČSN 01 6910).
+pub fn spaced_dash(text: &str) -> String {
+    static RE: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"(?<=\S)[ \u{a0}][-–][ \u{a0}](?=\S)").expect("vadný regex"));
+    RE.replace_all(text, "\u{a0}– ").into_owned()
+}
+
+/// Číselný rozsah `10-20` → `10–20` (en dash bez mezer).
+pub fn number_range(text: &str) -> String {
+    static RE: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"(?<=\d)-(?=\d)").expect("vadný regex"));
+    RE.replace_all(text, "–").into_owned()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[track_caller]
+    fn table(f: fn(&str) -> String, cases: &[(&str, &str)]) {
+        for (input, expected) in cases {
+            assert_eq!(&f(input), expected, "vstup: {input:?}");
+        }
+    }
+
+    #[test]
+    fn dashes() {
+        table(
+            spaced_dash,
+            &[
+                ("Praha - Brno", "Praha\u{a0}– Brno"),
+                ("text - vsuvka - text", "text\u{a0}– vsuvka\u{a0}– text"),
+                // již správná pomlčka dostane aspoň nezlomitelnou mezeru
+                ("Praha – Brno", "Praha\u{a0}– Brno"),
+                // spojovník uvnitř slova se nemění
+                ("modro-zelený", "modro-zelený"),
+                ("je-li", "je-li"),
+            ],
+        );
+    }
+
+    #[test]
+    fn ranges() {
+        table(
+            number_range,
+            &[
+                ("10-20", "10–20"),
+                ("strany 5-8 a 9-12", "strany 5–8 a 9–12"),
+                ("1918-1938", "1918–1938"),
+                ("modro-zelený", "modro-zelený"),
+            ],
+        );
+    }
+}

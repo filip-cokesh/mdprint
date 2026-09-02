@@ -1,0 +1,289 @@
+/* ===== screen.css — akademický, střízlivý vzhled ===== */
+
+/* Barevné tokeny. Tmavý režim: automaticky dle prefers-color-scheme,
+   ručně invertovatelný CSS-only přepínačem (#theme-invert, :has()) —
+   bez JavaScriptu. Tisk tokeny nemění: tmavé bloky platí jen pro screen
+   a print.css barvy stejně vynucuje. Kód (pre) zůstává záměrně světlý
+   „ostrůvek" v obou režimech — syntect barvy jsou laděné na světlé pozadí. */
+:root {
+  color-scheme: light;
+  --c-bg: #ffffff;
+  --c-text: #1a1a1a;
+  --c-muted: #4d4d4d;
+  --c-border: #b9b9b9;
+  --c-rule: #1a1a1a;
+  --c-link: #1a4d8f;
+  --c-link-visited: #5a3d8f;
+  --c-panel: #fafaf8;
+  --c-code-bg: #f4f4f2;
+}
+
+/* systémová tmavá, pokud uživatel ručně nepřepnul */
+@media screen and (prefers-color-scheme: dark) {
+  html:not(:has(#theme-invert:checked)) {
+    color-scheme: dark;
+    --c-bg: #16161a;
+    --c-text: #d6d6d2;
+    --c-muted: #9a9a96;
+    --c-border: #4c4c50;
+    --c-rule: #d6d6d2;
+    --c-link: #8ab4f8;
+    --c-link-visited: #c5a8ff;
+    --c-panel: #1f1f24;
+    --c-code-bg: #2a2a30;
+  }
+}
+/* systémová světlá + ruční přepnutí do tmavé (stejné hodnoty jako výše) */
+@media screen and (prefers-color-scheme: light) {
+  html:has(#theme-invert:checked) {
+    color-scheme: dark;
+    --c-bg: #16161a;
+    --c-text: #d6d6d2;
+    --c-muted: #9a9a96;
+    --c-border: #4c4c50;
+    --c-rule: #d6d6d2;
+    --c-link: #8ab4f8;
+    --c-link-visited: #c5a8ff;
+    --c-panel: #1f1f24;
+    --c-code-bg: #2a2a30;
+  }
+}
+
+/* přepínač režimu (checkbox v labelu, žádný skript) */
+label.theme-switch {
+  position: fixed;
+  top: 0.6rem;
+  right: 0.7rem;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.45;
+  user-select: none;
+  color: var(--c-text);
+  z-index: 10;
+}
+label.theme-switch:hover { opacity: 1; }
+label.theme-switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  font-size: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: var(--font-serif);
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  text-rendering: optimizeLegibility;
+  font-kerning: normal;
+  font-variant-ligatures: common-ligatures;
+}
+
+article.doc {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem 4rem;
+}
+
+p {
+  margin: 0 0 0.75em;
+  text-align: justify;
+  hyphens: manual;
+  overflow-wrap: break-word;
+}
+
+/* ---- hlavička dokumentu (front matter) ---- */
+.doc-header { margin: 0 0 2.5rem; }
+.doc-title {
+  font-family: var(--font-sans);
+  font-size: 2rem;
+  line-height: 1.2;
+  margin: 0 0 0.5rem;
+}
+.doc-byline {
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  color: var(--c-muted);
+  text-align: left;
+  margin: 0;
+}
+
+/* ---- nadpisy ---- */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-sans);
+  line-height: 1.25;
+  margin: 1.6em 0 0.6em;
+  text-align: left;
+  hyphens: none;
+}
+h1 { font-size: 1.7rem; }
+h2 { font-size: 1.35rem; }
+h3 { font-size: 1.15rem; }
+h4 { font-size: 1.02rem; }
+h5, h6 { font-size: 1rem; }
+
+/* prázdné kotvy generované comrakem */
+a.anchor { text-decoration: none; }
+
+/* ---- odkazy ---- */
+a { color: var(--c-link); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+a:visited { color: var(--c-link-visited); }
+
+/* ---- seznamy ---- */
+ul, ol { margin: 0 0 0.75em; padding-left: 1.6em; }
+li { margin-bottom: 0.2em; }
+li > p { text-align: left; }
+
+dl { margin: 0 0 0.75em; }
+dt { font-weight: 700; }
+dd { margin: 0 0 0.5em 1.6em; }
+
+/* ---- citace ---- */
+blockquote {
+  margin: 1em 0;
+  padding: 0.1em 1.1em;
+  border-left: 3px solid var(--c-border);
+  color: var(--c-muted);
+}
+
+/* ---- kód ---- */
+code, pre, kbd, samp {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+}
+code {
+  background: var(--c-code-bg);
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+}
+pre {
+  /* záměrně napevno světlé i v tmavém režimu (syntect barvy) */
+  background: #f7f7f5;
+  color: #1a1a1a;
+  border: 1px solid #e3e3df;
+  border-radius: 4px;
+  padding: 0.8em 1em;
+  overflow-x: auto;
+  line-height: 1.45;
+}
+pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+}
+
+/* ---- tabulky ---- */
+table {
+  border-collapse: collapse;
+  margin: 1em auto;
+  font-size: 0.95em;
+  /* širší než displej → vodorovný scroll uvnitř tabulky, ne celé stránky
+     (print.css vrací display: table kvůli opakování hlavičky) */
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow-x: auto;
+}
+th, td {
+  border: none;
+  padding: 0.3em 0.8em;
+  vertical-align: top;
+}
+thead th {
+  font-family: var(--font-sans);
+  font-size: 0.88em;
+  border-bottom: 1.5px solid var(--c-rule);
+  text-align: left;
+}
+/* tabulka bez záhlaví (GFM vynucuje prázdný header řádek): prázdný thead
+   nevykreslovat — jinak vzniká druhá linka nad tabulkou; :has má vyšší
+   specificitu než tiskové `thead { display: table-header-group }`, takže se
+   prázdné záhlaví neopakuje ani přes tiskové stránky */
+thead:not(:has(th:not(:empty))) { display: none; }
+table { border-top: 1.5px solid var(--c-rule); border-bottom: 1.5px solid var(--c-rule); }
+tbody tr:first-child td { padding-top: 0.5em; }
+
+/* ---- obrázky a figury ---- */
+img { max-width: 100%; height: auto; }
+figure {
+  margin: 1.4em 0;
+  text-align: center;
+}
+figcaption {
+  font-family: var(--font-sans);
+  font-size: 0.88em;
+  color: var(--c-muted);
+  margin-top: 0.5em;
+  text-align: center;
+}
+.fignum { font-weight: 700; }
+
+/* ---- obsah (--toc) ---- */
+nav.toc {
+  margin: 0 0 2.5rem;
+  padding: 0.8em 1.2em;
+  border: 1px solid var(--c-border);
+  background: var(--c-panel);
+  font-family: var(--font-sans);
+  font-size: 0.92em;
+}
+.toc-title {
+  margin: 0 0 0.5em;
+  font-size: 1.05em;
+}
+nav.toc ol {
+  margin: 0;
+  padding-left: 1.3em;
+  list-style: none;
+  counter-reset: toc;
+}
+nav.toc > ol { padding-left: 0; }
+nav.toc li::before {
+  counter-increment: toc;
+  content: counters(toc, ".") "  ";
+  color: var(--c-muted);
+}
+nav.toc a { text-decoration: none; color: inherit; }
+nav.toc a:hover { text-decoration: underline; }
+
+/* ---- doladění KaTeX vůči Libertinusu ----
+   KaTeX default 1.21em je kalibrovaný na jiné poměry; x-výšky KaTeX_Main
+   a Libertinus Serif jsou téměř shodné, proto inline matematika = 1em. */
+.katex { font-size: 0.95em; }
+.katex-display { margin: 0.9em 0; }
+.katex-display > .katex { font-size: 1em; }
+/* dlouhý blokový vzorec na úzkém displeji roluje, nerozbíjí stránku */
+.katex-display { overflow-x: auto; overflow-y: hidden; padding: 0.1em 0; }
+
+/* ---- horizontální linka ---- */
+hr {
+  border: none;
+  border-top: 1px solid var(--c-border);
+  margin: 2em auto;
+  width: 40%;
+}
+
+/* ---- úzké displeje (mobil) ---- */
+@media screen and (max-width: 600px) {
+  body { font-size: 1rem; }
+  article.doc { padding: 1.25rem 0.9rem 2.5rem; }
+  pre { padding: 0.6em 0.7em; }
+  nav.toc { padding: 0.6em 0.9em; }
+  blockquote { padding: 0.1em 0.8em; margin: 1em 0; }
+}
+
+/* ---- poznámky pod čarou ---- */
+section.footnotes {
+  margin-top: 2.5em;
+  border-top: 1px solid var(--c-border);
+  padding-top: 0.8em;
+  font-size: 0.9em;
+}
+section.footnotes p { text-align: left; }
+.footnote-ref a, a.footnote-backref { text-decoration: none; }

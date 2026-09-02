@@ -1,0 +1,36 @@
+[package]
+name = "mdprint"
+version = "0.2.0"
+edition = "2024"
+description = "Markdown → tiskově kvalitní HTML (jedna statická binárka)"
+license = "MIT"
+
+[dependencies]
+anyhow = "1"
+base64 = "0.22"
+blake3 = "1"
+minijinja = "2"
+clap = { version = "4", features = ["derive"] }
+comrak = "0.54"
+deunicode = "1"
+percent-encoding = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml = "0.9"
+thiserror = "2"
+toml = "0.9"
+katex-rs = "0.2.4"
+syntect = { version = "5.3.0", default-features = false, features = ["default-fancy"] }
+fancy-regex = "0.19.0"
+hyphenation = { version = "0.8.4", features = ["embed_all"] }
+ureq = "3.4.0"
+
+[dev-dependencies]
+insta = "1"
+regex = "1.13.1"
+tempfile = "3"
+
+[profile.release]
+lto = true
+strip = true
+codegen-units = 1
