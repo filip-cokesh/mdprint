@@ -1,9 +1,21 @@
 [package]
 name = "mdprint"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2024"
-description = "Markdown → tiskově kvalitní HTML (jedna statická binárka)"
-license = "MIT"
+rust-version = "1.88"
+description = "Markdown → print-quality self-contained HTML. One static binary with Czech typography, KaTeX math and syntax highlighting."
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/filip-cokesh/mdprint"
+readme = "README.md"
+keywords = ["markdown", "html", "print", "typography", "cli"]
+categories = ["command-line-utilities", "text-processing"]
+# pozn.: mdprint.ico v balíčku zůstává — potřebuje ho build.rs (ikona exe)
+exclude = [
+    "tests/fixtures/*",
+    "tests/snapshots/*",
+    "assets/logo/*.png",
+    ".github/*",
+]
 
 [dependencies]
 anyhow = "1"
@@ -24,6 +36,9 @@ syntect = { version = "5.3.0", default-features = false, features = ["default-fa
 fancy-regex = "0.19.0"
 hyphenation = { version = "0.8.4", features = ["embed_all"] }
 ureq = "3.4.0"
+
+[target.'cfg(windows)'.build-dependencies]
+winresource = "0.1"
 
 [dev-dependencies]
 insta = "1"
