@@ -1,22 +1,24 @@
 ---
 title: Průhyb prostě podepřeného nosníku za rovnoměrného zatížení
-author: Stanislav Hokeš
-date: 2026-09-02
+author: Filip Hokeš
+date: 2026-09-03
+version: "1.1"
 lang: cs
-version: "1.0"
 ---
 
 ## Úvod
 
-Tato studie se zabývá průhybem prostě podepřeného nosníku o rozpětí L,
-zatíženého rovnoměrným spojitým zatížením q. Cílem je porovnat analytické
-řešení s výsledky metody konečných prvků[^mkp] a ukázat, že pro štíhlé
-nosníky je Bernoulliho–Navierova hypotéza dostatečná. V šedesátých letech
+Tato studie se zabývá průhybem prostě podepřeného nosníku o rozpětí $L$,
+zatíženého rovnoměrným spojitým zatížením $q$. Cílem je porovnat uzavřené
+analytické řešení s numerickým řešením metodou sítí[^sit] a ukázat, za jakých
+podmínek vystačíme s Bernoulliho–Navierovou hypotézou. V šedesátých letech
 20. století se k výpočtu používaly tabulky, např. dle prof. Šmiřáka;
 dnes výpočet zvládne i skript o desítkách řádků.
 
-[^mkp]: Metoda konečných prvků (MKP, angl. FEM) — numerická metoda řešení
-    parciálních diferenciálních rovnic založená na diskretizaci oblasti.
+[^sit]: Metoda sítí (metoda konečných diferencí) — derivace v diferenciální
+    rovnici se nahradí diferenčními podíly na pravidelné síti uzlů. Nezaměňovat
+    s metodou konečných prvků, která hledá přibližné řešení ve slabé formulaci
+    nad bázovými funkcemi prvků.
 
 Maximální průhyb uprostřed rozpětí je dán vztahem
 
@@ -26,6 +28,20 @@ kde $E$ je modul pružnosti materiálu a $I$ moment setrvačnosti průřezu.
 Pro ocel je typicky $E = 210\,\mathrm{GPa}$; u dřeva počítáme s hodnotou
 řádově desetkrát nižší. Poměrný průhyb $w_{\max}/L$ nemá dle normy
 překročit hodnotu 1/250.
+
+Uvedený vztah plyne z Bernoulliho–Navierovy hypotézy, která zanedbává
+smykovou složku průhybu. O její velikosti nerozhoduje štíhlost sama o sobě,
+ale **poměr ohybové a smykové tuhosti**: pro rovnoměrné zatížení platí
+
+$$\frac{w_{\mathrm{V}}}{w_{\mathrm{M}}} = \frac{q L^2 / (8\,G\,A_{\mathrm{s}})}
+{5\,q\,L^4 / (384\,E\,I)} = 9{,}6\,\frac{E\,I}{G\,A_{\mathrm{s}}\,L^2},$$
+
+kde $G$ je modul pružnosti ve smyku a $A_{\mathrm{s}}$ smyková plocha průřezu.
+Teprve u homogenního obdélníkového průřezu se výraz zjednoduší na
+$\approx 2{,}5\,(h/L)^2$, takže pro $h/L = 1/20$ činí smyková složka asi
+0,6 % — odtud pochází zažité pravidlo o štíhlosti. U sendvičových,
+tenkostěnných či kompozitních průřezů s nízkým $G\,A_{\mathrm{s}}$ však může
+být smyk významný i u velmi štíhlého nosníku a je namístě Timoshenkova teorie.
 
 ## Vstupní data a parametrická studie
 
@@ -117,6 +133,34 @@ Průhybové čáry obou řešení jsou vykresleny na následujícím obrázku.
 Statické schéma úlohy se stejnojmenným souborem z jiné složky:
 
 ![Statické schéma prostě podepřeného nosníku](schemata/průběh.png)
+
+## Zdroj vs. výsledek
+
+Tento dokument vznikl z prostého Markdownu. Následující blok je doslovný
+zdrojový text (uvnitř bloku kódu se typografická pravidla záměrně
+neuplatňují):
+
+```markdown
+Nosník o rozpětí 6 m nese zatížení 10 kN/m; průhyb w_max = 9,65 mm
+"vyhoví" i pro mezní stav 1/250 - viz obr. 1. Teplotní rozsah 10-20 °C,
+plocha 40x60 mm, 1 000 000 cyklů, posudek dle ČSN EN 1990 s. 12.
+Vzorec $w_{\max} = 5qL^4/(384EI)$ i cesta C:\data\vstup.md zůstávají
+netknuté.
+```
+
+A takto tentýž text vysází mdprint:
+
+Nosník o rozpětí 6 m nese zatížení 10 kN/m; průhyb w_max = 9,65 mm
+"vyhoví" i pro mezní stav 1/250 - viz obr. 1. Teplotní rozsah 10-20 °C,
+plocha 40x60 mm, 1 000 000 cyklů, posudek dle ČSN EN 1990 s. 12.
+Vzorec $w_{\max} = 5qL^4/(384EI)$ i cesta `C:\data\vstup.md` zůstávají
+netknuté.
+
+Rozdíl je v detailech, které rozhodují o čitelnosti sazby: české uvozovky,
+pomlčka místo spojovníku, en dash v rozsahu, znak násobení, úzká mezera
+v tisícových skupinách a nezlomitelné mezery za jednopísmennými předložkami,
+zkratkami i mezi číslem a jednotkou. Matematika se vysází, kód a cesty
+zůstanou beze změny.
 
 ## Závěr
 
