@@ -1,0 +1,6 @@
+# LF všude — snapshot testy porovnávají přesný výstup a CRLF checkout
+# (výchozí na Windows CI runnerech) by je rozbil.
+* text=auto eol=lf
+*.woff2 binary
+*.png binary
+*.ico binary
