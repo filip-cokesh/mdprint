@@ -1,4 +1,4 @@
-<img src="assets/logo/mdprint-logo.svg" width="96" align="left" alt="mdprint logo">
+<img src="assets/logo/mdprint-logo.svg" width="48" align="left" alt="mdprint logo">
 
 # mdprint
 
