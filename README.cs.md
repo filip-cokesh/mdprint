@@ -8,6 +8,10 @@
 
 *English documentation: [README.md](README.md)*
 
+**[Živé demo](https://filip-cokesh.github.io/mdprint/)** — skutečný český
+akademický dokument z `mdprint --toc`: matematika, tabulky, kód, obrázky,
+typografie, tmavý režim. Zkuste i tisk (Ctrl+P).
+
 ## Proč
 
 Pandoc je na tuhle úlohu dělo — univerzální konvertor s LaTeXovou sazbou

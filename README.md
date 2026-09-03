@@ -12,6 +12,10 @@
 
 *Česká verze dokumentace: [README.cs.md](README.cs.md)*
 
+**[Live demo](https://filip-cokesh.github.io/mdprint/)** — a real Czech
+academic document produced by `mdprint --toc`: math, tables, code, figures,
+typography, dark mode. Try printing it (Ctrl+P).
+
 ## Why
 
 Pandoc is a cannon for this job — a universal converter with a LaTeX toolchain
