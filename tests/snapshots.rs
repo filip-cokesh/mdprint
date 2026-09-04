@@ -96,17 +96,18 @@ fn akademicky_dokument_pres_pack() {
 
 #[test]
 fn anglicky_showcase() {
-    let html = build_fixture("english", "showcase-en.md", None, true);
+    let html = build_fixture("english", "beam-deflection.md", None, true);
     assert!(html.contains("<html lang=\"en\">"));
     assert!(html.contains(">Contents</h2>"));
-    assert!(html.contains("don\u{2019}t"));
+    assert!(html.contains("Don\u{2019}t"));
     assert!(html.contains("\u{2014}"), "em dash chybí");
+    assert!(html.contains("Fig. 1:"), "Fig. popisek figury chybí");
     insta::assert_snapshot!("english", html);
 }
 
 #[test]
 fn nemecky_showcase() {
-    let html = build_fixture("german", "showcase-de.md", None, true);
+    let html = build_fixture("german", "balkendurchbiegung.md", None, true);
     assert!(html.contains("<html lang=\"de\">"));
     assert!(html.contains(">Inhalt</h2>"));
     assert!(html.contains("z.\u{a0}B."));

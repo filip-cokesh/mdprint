@@ -9,63 +9,484 @@ expression: html
 <meta content="width=device-width, initial-scale=1" name="viewport">
 <meta content="mdprint" name="generator">
 <meta content="Filip Hokeš" name="author">
-<title>Technischer Satz auf Deutsch mit mdprint</title>
+<title>Durchbiegung eines Einfeldträgers unter Gleichstreckenlast</title>
 <style>…</style>
 </head>
 <body>
 <label class="theme-switch" title="Světlý / tmavý režim"><input id="theme-invert" type="checkbox">◐</label>
 <article class="doc">
 <header class="doc-header">
-<h1 class="doc-title">Technischer Satz auf Deutsch mit mdprint</h1>
-<p class="doc-byline">Filip Hokeš · 04.09.2026 · Version 1.0</p>
+<h1 class="doc-title">Durchbiegung eines Einfeldträgers unter Gleichstreckenlast</h1>
+<p class="doc-byline">Filip Hokeš · 04.09.2026 · Version 1.2</p>
 </header>
 <nav class="toc">
 <h2 class="toc-title">Inhalt</h2>
 <ol>
-<li><a href="#warum-mikrotypografie">Warum Mikrotypografie</a>
+<li><a href="#einleitung">Einleitung</a>
 </li>
-<li><a href="#was-der-deutsche-modus-leistet">Was der deutsche Modus leistet</a>
+<li><a href="#eingangsdaten-und-parameterstudie">Eingangsdaten und Parameterstudie</a>
 </li>
-<li><a href="#mathematik">Mathematik</a>
+<li><a href="#berechnungsskript">Berechnungsskript</a>
 </li>
-<li><a href="#quelltext-vs-ergebnis">Quelltext vs. Ergebnis</a>
+<li><a href="#grafische-ergebnisse">Grafische Ergebnisse</a>
+</li>
+<li><a href="#quelle-vs-ergebnis">Quelle vs. Ergebnis</a>
+</li>
+<li><a href="#fazit">Fazit</a>
 </li>
 </ol>
 </nav>
 
 <nav style="font-size:0.85em;text-align:right;"><a href="index.html">Čeština</a> · <a href="en.html">English</a> · <a href="de.html">Deutsch</a></nav>
-<h2 id="warum-mikrotypografie">Warum Mikrotypografie<a aria-label="Link to heading 'Warum Mikrotypografie'" class="anchor" data-heading-content="Warum Mikrotypografie" href="#warum-mikrotypografie"></a></h2>
-<p>Rohes Mark­down lie­fert gerade Anfüh­rungs­zei­chen, Bin­de­stri­che statt
-Gedan­ken­stri­che und keine Kon­trolle über Zei­len­um­brü­che – mdprint kor­ri­giert
-das beim Erzeu­gen der Seite. Diese Seite ent­stand mit
-<code>mdprint --toc --lang de</code> aus einer rei­nen Text­da­tei.</p>
-<h2 id="was-der-deutsche-modus-leistet">Was der deutsche Modus leistet<a aria-label="Link to heading 'Was der deutsche Modus leistet'" class="anchor" data-heading-content="Was der deutsche Modus leistet" href="#was-der-deutsche-modus-leistet"></a></h2>
-<p>Die Regeln fol­gen DIN 5008: „Gän­se­füß­chen“ wer­den auto­ma­tisch gesetzt,
-Abkür­zun­gen wie z. B., d. h. oder i. d. R. erhal­ten geschützte Leer­zei­chen,
-Ver­weise wie Nr. 5, S. 12 oder Abb. 1 blei­ben mit ihrer Zahl ver­bun­den.
-Zahl und Ein­heit – etwa 10 kN, 25 °C oder 230 V – trennt kein Umbruch,
-Berei­che wie 10–20 kN oder die Jahre 1990–2026 bekom­men einen Bis-Strich,
-Abmes­sun­gen wie 40×60 mm ein ech­tes Mal­zei­chen und 1 000 000 Zyklen ein
-schma­les geschütz­tes Leer­zei­chen. Auch die Sil­ben­tren­nung spricht Deutsch:
-Donau­dampf­schiff­fahrts­ge­sell­schafts­ka­pi­täns­müt­zen­ab­zei­chen bricht sau­ber um,
-und geht’s um Apo­stro­phe, sitzt auch der rich­tig.</p>
-<h2 id="mathematik">Mathematik<a aria-label="Link to heading 'Mathematik'" class="anchor" data-heading-content="Mathematik" href="#mathematik"></a></h2>
-<p>Die maxi­male Durch­bie­gung eines Ein­feld­trä­gers unter Gleich­last beträgt</p>
+<h2 id="einleitung">Einleitung<a aria-label="Link to heading 'Einleitung'" class="anchor" data-heading-content="Einleitung" href="#einleitung"></a></h2>
+<p>Diese Stu­die behan­delt die Durch­bie­gung eines Ein­feld­trä­gers mit der
+Spann­weite <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi></mrow><annotation encoding="application/x-tex">L</annotation></semantics></math></span><span aria-hidden="true" class="katex-html"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">L</span></span></span></span> unter einer Gleich­stre­cken­last <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>q</mi></mrow><annotation encoding="application/x-tex">q</annotation></semantics></math></span><span aria-hidden="true" class="katex-html"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">q</span></span></span></span>. Ziel ist es, die
+geschlos­sene ana­ly­ti­sche Lösung mit einer nume­ri­schen Lösung nach dem
+Dif­fe­ren­zen­ver­fah­ren<sup class="footnote-ref"><a href="#fn-dv" id="fnref-dv" data-footnote-ref>1</a></sup> zu ver­glei­chen und zu zei­gen, unter wel­chen
+Bedin­gun­gen die Ber­noulli-Navier-Hypo­these aus­reicht. In den 1960er-Jah­ren
+las man sol­che Werte aus Tafeln ab; heute genügt ein Skript mit weni­gen
+Dut­zend Zei­len.</p>
+<p>Die maxi­male Durch­bie­gung in Feld­mitte beträgt</p>
 <p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>w</mi><mo lspace="0em" rspace="0em">\max</mo></msub><mo>=</mo><mfrac><mrow><mn>5</mn><mspace width="0.1667em"/><mi>q</mi><mspace width="0.1667em"/><msup><mi>L</mi><mn>4</mn></msup></mrow><mrow><mn>384</mn><mspace width="0.1667em"/><mi>E</mi><mspace width="0.1667em"/><mi>I</mi></mrow></mfrac><mo separator="true">,</mo></mrow><annotation encoding="application/x-tex">w_{\max} = \frac{5\,q\,L^4}{384\,E\,I},</annotation></semantics></math></span><span aria-hidden="true" class="katex-html"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0269em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="margin-left:-0.0269em;margin-right:0.05em;top:-2.55em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mop mtight"><span class="mtight">m</span><span class="mtight">a</span><span class="mtight">x</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.1771em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.4911em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">3</span><span class="mord">8</span><span class="mord">4</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0576em;">E</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">I</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">5</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">q</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">L</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="margin-right:0.05em;top:-3.063em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">4</span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mpunct">,</span></span></span></span></span></p>
 <p>wobei <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>E</mi></mrow><annotation encoding="application/x-tex">E</annotation></semantics></math></span><span aria-hidden="true" class="katex-html"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0576em;">E</span></span></span></span> der Elas­ti­zi­täts­mo­dul und <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>I</mi></mrow><annotation encoding="application/x-tex">I</annotation></semantics></math></span><span aria-hidden="true" class="katex-html"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">I</span></span></span></span> das Flä­chen­träg­heits­mo­ment ist.
-Für Stahl gilt <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>E</mi><mo>=</mo><mn>210</mn><mspace width="0.1667em"/><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">P</mi><mi mathvariant="normal">a</mi></mrow></mrow><annotation encoding="application/x-tex">E = 210\,\mathrm{GPa}</annotation></semantics></math></span><span aria-hidden="true" class="katex-html"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0576em;">E</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">2</span><span class="mord">1</span><span class="mord">0</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathrm">GPa</span></span></span></span></span>; die Norm begrenzt die bezo­gene
-Durch­bie­gung <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>w</mi><mo lspace="0em" rspace="0em">\max</mo></msub><mi mathvariant="normal">/</mi><mi>L</mi></mrow><annotation encoding="application/x-tex">w_{\max}/L</annotation></semantics></math></span><span aria-hidden="true" class="katex-html"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0269em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="margin-left:-0.0269em;margin-right:0.05em;top:-2.55em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mop mtight"><span class="mtight">m</span><span class="mtight">a</span><span class="mtight">x</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">/</span><span class="mord mathnormal">L</span></span></span></span> übli­cher­weise auf 1/250. Das sta­ti­sche Sys­tem
-zeigt Abb. 1.</p>
-<figure><img alt="Sta­ti­sches Sys­tem des Ein­feld­trä­gers unter Gleich­last" src="img_showcase-de/system-4886b5ba.png" /><figcaption><span class="fignum">Abb. 1:</span> Sta­ti­sches Sys­tem des Ein­feld­trä­gers unter Gleich­last</figcaption></figure>
-<h2 id="quelltext-vs-ergebnis">Quelltext vs. Ergebnis<a aria-label="Link to heading 'Quelltext vs. Ergebnis'" class="anchor" data-heading-content="Quelltext vs. Ergebnis" href="#quelltext-vs-ergebnis"></a></h2>
-<p>Der fol­gende Block ist der wört­li­che Quell­text des Absat­zes dar­un­ter:</p>
+Für Stahl gilt <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>E</mi><mo>=</mo><mn>210</mn><mspace width="0.1667em"/><mrow><mi mathvariant="normal">G</mi><mi mathvariant="normal">P</mi><mi mathvariant="normal">a</mi></mrow></mrow><annotation encoding="application/x-tex">E = 210\,\mathrm{GPa}</annotation></semantics></math></span><span aria-hidden="true" class="katex-html"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0576em;">E</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">2</span><span class="mord">1</span><span class="mord">0</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathrm">GPa</span></span></span></span></span>; Holz ist rund zehn­mal wei­cher.
+Die Norm begrenzt die bezo­gene Durch­bie­gung <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>w</mi><mo lspace="0em" rspace="0em">\max</mo></msub><mi mathvariant="normal">/</mi><mi>L</mi></mrow><annotation encoding="application/x-tex">w_{\max}/L</annotation></semantics></math></span><span aria-hidden="true" class="katex-html"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0269em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="margin-left:-0.0269em;margin-right:0.05em;top:-2.55em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mop mtight"><span class="mtight">m</span><span class="mtight">a</span><span class="mtight">x</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">/</span><span class="mord mathnormal">L</span></span></span></span> übli­cher­weise
+auf 1/250.</p>
+<p>Die For­mel beruht auf der Ber­noulli-Navier-Hypo­these, die den Schub­an­teil
+der Durch­bie­gung ver­nach­läs­sigt. Über des­sen Größe ent­schei­det nicht die
+Schlank­heit an sich, son­dern das <strong>Ver­hält­nis von Biege- zu Schub­stei­fig­keit</strong>:
+für Gleich­last gilt</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><msub><mi>w</mi><mi mathvariant="normal">V</mi></msub><msub><mi>w</mi><mi mathvariant="normal">M</mi></msub></mfrac><mo>=</mo><mfrac><mrow><mi>q</mi><msup><mi>L</mi><mn>2</mn></msup><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mn>8</mn><mspace width="0.1667em"/><mi>G</mi><mspace width="0.1667em"/><msub><mi>A</mi><mi mathvariant="normal">s</mi></msub><mo stretchy="false">)</mo></mrow><mrow><mn>5</mn><mspace width="0.1667em"/><mi>q</mi><mspace width="0.1667em"/><msup><mi>L</mi><mn>4</mn></msup><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mn>384</mn><mspace width="0.1667em"/><mi>E</mi><mspace width="0.1667em"/><mi>I</mi><mo stretchy="false">)</mo></mrow></mfrac><mo>=</mo><mn>9,6</mn><mspace width="0.1667em"/><mfrac><mrow><mi>E</mi><mspace width="0.1667em"/><mi>I</mi></mrow><mrow><mi>G</mi><mspace width="0.1667em"/><msub><mi>A</mi><mi mathvariant="normal">s</mi></msub><mspace width="0.1667em"/><msup><mi>L</mi><mn>2</mn></msup></mrow></mfrac><mo separator="true">,</mo></mrow><annotation encoding="application/x-tex">\frac{w_{\mathrm{V}}}{w_{\mathrm{M}}} = \frac{q L^2 / (8\,G\,A_{\mathrm{s}})}
+{5\,q\,L^4 / (384\,E\,I)} = 9{,}6\,\frac{E\,I}{G\,A_{\mathrm{s}}\,L^2},</annotation></semantics></math></span><span aria-hidden="true" class="katex-html"><span class="base"><span class="strut" style="height:1.9436em;vertical-align:-0.836em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.1076em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.0269em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="margin-left:-0.0269em;margin-right:0.05em;top:-2.55em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathrm mtight">M</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.0269em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="margin-left:-0.0269em;margin-right:0.05em;top:-2.55em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathrm mtight" style="margin-right:0.0139em;">V</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.836em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.4271em;vertical-align:-0.936em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.4911em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">5</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">q</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">L</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7401em;"><span style="margin-right:0.05em;top:-2.989em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">4</span></span></span></span></span></span></span></span><span class="mord">/</span><span class="mopen">(</span><span class="mord">3</span><span class="mord">8</span><span class="mord">4</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0576em;">E</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">I</span><span class="mclose">)</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">q</span><span class="mord"><span class="mord mathnormal">L</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="margin-right:0.05em;top:-3.063em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mord">/</span><span class="mopen">(</span><span class="mord">8</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">G</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="margin-left:0em;margin-right:0.05em;top:-2.55em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathrm mtight">s</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.936em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.1963em;vertical-align:-0.836em;"></span><span class="mord">9</span><span class="mord"><span class="mpunct">,</span></span><span class="mord">6</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3603em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">G</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="margin-left:0em;margin-right:0.05em;top:-2.55em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathrm mtight">s</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">L</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7401em;"><span style="margin-right:0.05em;top:-2.989em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0576em;">E</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">I</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.836em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mpunct">,</span></span></span></span></span></p>
+<p>wobei <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>G</mi></mrow><annotation encoding="application/x-tex">G</annotation></semantics></math></span><span aria-hidden="true" class="katex-html"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">G</span></span></span></span> der Schub­mo­dul und <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>A</mi><mi mathvariant="normal">s</mi></msub></mrow><annotation encoding="application/x-tex">A_{\mathrm{s}}</annotation></semantics></math></span><span aria-hidden="true" class="katex-html"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="margin-left:0em;margin-right:0.05em;top:-2.55em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathrm mtight">s</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> die Schub­flä­che ist. Erst beim
+homo­ge­nen Recht­eck­quer­schnitt ver­ein­facht sich der Aus­druck zu
+<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≈</mo><mn>2,5</mn><mspace width="0.1667em"/><mo stretchy="false">(</mo><mi>h</mi><mi mathvariant="normal">/</mi><mi>L</mi><msup><mo stretchy="false">)</mo><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">\approx 2{,}5\,(h/L)^2</annotation></semantics></math></span><span aria-hidden="true" class="katex-html"><span class="base"><span class="strut" style="height:0.4831em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.0641em;vertical-align:-0.25em;"></span><span class="mord">2</span><span class="mord"><span class="mpunct">,</span></span><span class="mord">5</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mopen">(</span><span class="mord mathnormal">h</span><span class="mord">/</span><span class="mord mathnormal">L</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="margin-right:0.05em;top:-3.063em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span> — für <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mi mathvariant="normal">/</mi><mi>L</mi><mo>=</mo><mn>1</mn><mi mathvariant="normal">/</mi><mn>20</mn></mrow><annotation encoding="application/x-tex">h/L = 1/20</annotation></semantics></math></span><span aria-hidden="true" class="katex-html"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal">h</span><span class="mord">/</span><span class="mord mathnormal">L</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mord">/</span><span class="mord">2</span><span class="mord">0</span></span></span></span> macht der Schub­an­teil also etwa
+0,6 % aus, woher die bekannte Schlank­heits­faust­re­gel stammt. Bei
+Quer­schnit­ten mit klei­nem <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>G</mi><mspace width="0.1667em"/><msub><mi>A</mi><mi mathvariant="normal">s</mi></msub></mrow><annotation encoding="application/x-tex">G\,A_{\mathrm{s}}</annotation></semantics></math></span><span aria-hidden="true" class="katex-html"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord mathnormal">G</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="margin-left:0em;margin-right:0.05em;top:-2.55em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathrm mtight">s</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> — z. B. Sand­wich-,
+dünn­wan­di­gen oder Ver­bund­pro­fi­len — kann der Schub jedoch auch bei sehr
+schlan­ken Trä­gern rele­vant sein, d. h. die Timos­henko-Theo­rie ist dann
+ange­bracht.</p>
+<h2 id="eingangsdaten-und-parameterstudie">Eingangsdaten und Parameterstudie<a aria-label="Link to heading 'Eingangsdaten und Parameterstudie'" class="anchor" data-heading-content="Eingangsdaten und Parameterstudie" href="#eingangsdaten-und-parameterstudie"></a></h2>
+<p>Die fol­gende Tabelle fasst eine Para­me­ter­stu­die mit 36 Kom­bi­na­tio­nen aus
+Spann­weite und Last zusam­men. Sie läuft absicht­lich über eine Seite, um die
+Wie­der­ho­lung des Tabel­len­kopfs im Druck zu prü­fen.</p>
+<table>
+<thead>
+<tr>
+<th align="right">Nr.</th>
+<th align="right">L [m]</th>
+<th align="right">q [kN/m]</th>
+<th align="right">E [GPa]</th>
+<th align="right">I [10⁻⁶ m⁴]</th>
+<th align="right">w_max [mm]</th>
+<th align="right">w/L [–]</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="right">1</td>
+<td align="right">3,0</td>
+<td align="right">5,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">0,60</td>
+<td align="right">1/4970</td>
+</tr>
+<tr>
+<td align="right">2</td>
+<td align="right">3,0</td>
+<td align="right">10,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">1,21</td>
+<td align="right">1/2485</td>
+</tr>
+<tr>
+<td align="right">3</td>
+<td align="right">3,0</td>
+<td align="right">15,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">1,81</td>
+<td align="right">1/1657</td>
+</tr>
+<tr>
+<td align="right">4</td>
+<td align="right">3,5</td>
+<td align="right">5,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">1,12</td>
+<td align="right">1/3133</td>
+</tr>
+<tr>
+<td align="right">5</td>
+<td align="right">3,5</td>
+<td align="right">10,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">2,23</td>
+<td align="right">1/1567</td>
+</tr>
+<tr>
+<td align="right">6</td>
+<td align="right">3,5</td>
+<td align="right">15,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">3,35</td>
+<td align="right">1/1044</td>
+</tr>
+<tr>
+<td align="right">7</td>
+<td align="right">4,0</td>
+<td align="right">5,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">1,90</td>
+<td align="right">1/2100</td>
+</tr>
+<tr>
+<td align="right">8</td>
+<td align="right">4,0</td>
+<td align="right">10,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">3,81</td>
+<td align="right">1/1050</td>
+</tr>
+<tr>
+<td align="right">9</td>
+<td align="right">4,0</td>
+<td align="right">15,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">5,71</td>
+<td align="right">1/700</td>
+</tr>
+<tr>
+<td align="right">10</td>
+<td align="right">4,5</td>
+<td align="right">5,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">3,05</td>
+<td align="right">1/1475</td>
+</tr>
+<tr>
+<td align="right">11</td>
+<td align="right">4,5</td>
+<td align="right">10,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">6,10</td>
+<td align="right">1/738</td>
+</tr>
+<tr>
+<td align="right">12</td>
+<td align="right">4,5</td>
+<td align="right">15,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">9,15</td>
+<td align="right">1/492</td>
+</tr>
+<tr>
+<td align="right">13</td>
+<td align="right">5,0</td>
+<td align="right">5,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">4,65</td>
+<td align="right">1/1075</td>
+</tr>
+<tr>
+<td align="right">14</td>
+<td align="right">5,0</td>
+<td align="right">10,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">9,30</td>
+<td align="right">1/538</td>
+</tr>
+<tr>
+<td align="right">15</td>
+<td align="right">5,0</td>
+<td align="right">15,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">13,95</td>
+<td align="right">1/358</td>
+</tr>
+<tr>
+<td align="right">16</td>
+<td align="right">5,5</td>
+<td align="right">5,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">6,81</td>
+<td align="right">1/808</td>
+</tr>
+<tr>
+<td align="right">17</td>
+<td align="right">5,5</td>
+<td align="right">10,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">13,62</td>
+<td align="right">1/404</td>
+</tr>
+<tr>
+<td align="right">18</td>
+<td align="right">5,5</td>
+<td align="right">15,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">20,43</td>
+<td align="right">1/269</td>
+</tr>
+<tr>
+<td align="right">19</td>
+<td align="right">6,0</td>
+<td align="right">5,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">9,64</td>
+<td align="right">1/622</td>
+</tr>
+<tr>
+<td align="right">20</td>
+<td align="right">6,0</td>
+<td align="right">10,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">19,28</td>
+<td align="right">1/311</td>
+</tr>
+<tr>
+<td align="right">21</td>
+<td align="right">6,0</td>
+<td align="right">15,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">28,93</td>
+<td align="right">1/207</td>
+</tr>
+<tr>
+<td align="right">22</td>
+<td align="right">6,5</td>
+<td align="right">5,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">13,29</td>
+<td align="right">1/489</td>
+</tr>
+<tr>
+<td align="right">23</td>
+<td align="right">6,5</td>
+<td align="right">10,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">26,57</td>
+<td align="right">1/245</td>
+</tr>
+<tr>
+<td align="right">24</td>
+<td align="right">6,5</td>
+<td align="right">15,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">39,86</td>
+<td align="right">1/163</td>
+</tr>
+<tr>
+<td align="right">25</td>
+<td align="right">7,0</td>
+<td align="right">5,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">17,86</td>
+<td align="right">1/392</td>
+</tr>
+<tr>
+<td align="right">26</td>
+<td align="right">7,0</td>
+<td align="right">10,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">35,71</td>
+<td align="right">1/196</td>
+</tr>
+<tr>
+<td align="right">27</td>
+<td align="right">7,0</td>
+<td align="right">15,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">53,57</td>
+<td align="right">1/131</td>
+</tr>
+<tr>
+<td align="right">28</td>
+<td align="right">7,5</td>
+<td align="right">5,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">23,54</td>
+<td align="right">1/319</td>
+</tr>
+<tr>
+<td align="right">29</td>
+<td align="right">7,5</td>
+<td align="right">10,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">47,08</td>
+<td align="right">1/159</td>
+</tr>
+<tr>
+<td align="right">30</td>
+<td align="right">7,5</td>
+<td align="right">15,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">70,62</td>
+<td align="right">1/106</td>
+</tr>
+<tr>
+<td align="right">31</td>
+<td align="right">8,0</td>
+<td align="right">5,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">30,48</td>
+<td align="right">1/262</td>
+</tr>
+<tr>
+<td align="right">32</td>
+<td align="right">8,0</td>
+<td align="right">10,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">60,95</td>
+<td align="right">1/131</td>
+</tr>
+<tr>
+<td align="right">33</td>
+<td align="right">8,0</td>
+<td align="right">15,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">91,43</td>
+<td align="right">1/87</td>
+</tr>
+<tr>
+<td align="right">34</td>
+<td align="right">8,5</td>
+<td align="right">5,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">38,84</td>
+<td align="right">1/219</td>
+</tr>
+<tr>
+<td align="right">35</td>
+<td align="right">8,5</td>
+<td align="right">10,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">77,68</td>
+<td align="right">1/109</td>
+</tr>
+<tr>
+<td align="right">36</td>
+<td align="right">8,5</td>
+<td align="right">15,0</td>
+<td align="right">210</td>
+<td align="right">83,3</td>
+<td align="right">116,52</td>
+<td align="right">1/73</td>
+</tr>
+</tbody>
+</table>
+<p>Spann­wei­ten über 8,0 m ver­let­zen den Grenz­wert 1/250 deut­lich und ver­lan­gen
+einen höhe­ren Quer­schnitt oder eine Über­hö­hung.</p>
+<h2 id="berechnungsskript">Berechnungsskript<a aria-label="Link to heading 'Berechnungsskript'" class="anchor" data-heading-content="Berechnungsskript" href="#berechnungsskript"></a></h2>
+<p>Die ana­ly­ti­sche Lösung wird durch das fol­gende Skript geprüft. Die Zei­len
+sind absicht­lich lang, um den Zei­len­um­bruch im Druck zu tes­ten.</p>
+<pre><code class="language-python"><span class="line"><span class="source python"><span class="comment block documentation python"><span class="punctuation definition comment begin python">&quot;&quot;&quot;</span>Durchbiegung des Einfeldträgers: analytisch vs. numerisch (Differenzenverfahren).<span class="punctuation definition comment end python">&quot;&quot;&quot;</span></span></span></span>
+<span class="line"><span class="source python"><span class="meta statement import python"><span class="keyword control import python">import</span> <span class="meta qualified-name python"><span class="meta generic-name python">numpy</span></span> <span class="keyword control import as python">as</span> <span class="meta qualified-name python"><span class="meta generic-name python">np</span></span></span></span></span>
+<span class="line"><span class="source python"></span></span>
+<span class="line"><span class="source python"><span class="meta function python"><span class="storage type function python">def</span> <span class="entity name function python"><span class="meta generic-name python">analytische_loesung</span></span></span><span class="meta function parameters python"><span class="punctuation section parameters begin python">(</span></span><span class="meta function parameters python"><span class="variable parameter python">L</span></span><span class="meta function parameters annotation python"><span class="punctuation separator annotation parameter python">:</span> <span class="meta qualified-name python"><span class="support type python">float</span></span></span><span class="meta function parameters python"><span class="punctuation separator parameters python">,</span> <span class="variable parameter python">q</span></span><span class="meta function parameters annotation python"><span class="punctuation separator annotation parameter python">:</span> <span class="meta qualified-name python"><span class="support type python">float</span></span></span><span class="meta function parameters python"><span class="punctuation separator parameters python">,</span> <span class="variable parameter python">E</span></span><span class="meta function parameters annotation python"><span class="punctuation separator annotation parameter python">:</span> <span class="meta qualified-name python"><span class="support type python">float</span></span></span><span class="meta function parameters python"><span class="punctuation separator parameters python">,</span> <span class="variable parameter python">I</span></span><span class="meta function parameters annotation python"><span class="punctuation separator annotation parameter python">:</span> <span class="meta qualified-name python"><span class="support type python">float</span></span></span><span class="meta function parameters python"><span class="punctuation separator parameters python">,</span> <span class="variable parameter python">n</span></span><span class="meta function parameters annotation python"><span class="punctuation separator annotation parameter python">:</span> <span class="meta qualified-name python"><span class="support type python">int</span></span> </span><span class="meta function parameters default-value python"><span class="keyword operator assignment python">=</span> <span class="constant numeric integer decimal python">101</span></span><span class="meta function parameters python"><span class="punctuation section parameters end python">)</span></span><span class="meta function python"> </span><span class="meta function annotation return python"><span class="punctuation separator annotation return python">-&gt;</span> <span class="meta qualified-name python"><span class="meta generic-name python">np</span><span class="punctuation accessor dot python">.</span><span class="meta generic-name python">ndarray</span></span></span><span class="meta function python"><span class="punctuation section function begin python">:</span></span></span></span>
+<span class="line"><span class="source python">    <span class="comment block documentation python"><span class="punctuation definition comment begin python">&quot;&quot;&quot;</span>Biegelinie w(x) = q x (L^3 - 2 L x^2 + x^3) / (24 E I).<span class="punctuation definition comment end python">&quot;&quot;&quot;</span></span></span></span>
+<span class="line"><span class="source python">    <span class="meta qualified-name python"><span class="meta generic-name python">x</span></span> <span class="keyword operator assignment python">=</span> <span class="meta function-call python"><span class="meta qualified-name python"><span class="meta generic-name python">np</span><span class="punctuation accessor dot python">.</span></span><span class="meta qualified-name python"><span class="variable function python">linspace</span></span><span class="punctuation section arguments begin python">(</span><span class="meta function-call arguments python"><span class="constant numeric float python">0<span class="punctuation separator decimal python">.</span>0</span><span class="punctuation separator arguments python">,</span> <span class="meta qualified-name python"><span class="meta generic-name python">L</span></span><span class="punctuation separator arguments python">,</span> <span class="meta qualified-name python"><span class="meta generic-name python">n</span></span></span><span class="punctuation section arguments end python">)</span></span></span></span>
+<span class="line"><span class="source python">    <span class="keyword control flow return python">return</span> <span class="meta qualified-name python"><span class="meta generic-name python">q</span></span> <span class="keyword operator arithmetic python">*</span> <span class="meta qualified-name python"><span class="meta generic-name python">x</span></span> <span class="keyword operator arithmetic python">*</span> <span class="meta group python"><span class="punctuation section group begin python">(</span><span class="meta qualified-name python"><span class="meta generic-name python">L</span></span><span class="keyword operator arithmetic python">*</span><span class="keyword operator arithmetic python">*</span><span class="constant numeric integer decimal python">3</span> <span class="keyword operator arithmetic python">-</span> <span class="constant numeric float python">2<span class="punctuation separator decimal python">.</span>0</span> <span class="keyword operator arithmetic python">*</span> <span class="meta qualified-name python"><span class="meta generic-name python">L</span></span> <span class="keyword operator arithmetic python">*</span> <span class="meta qualified-name python"><span class="meta generic-name python">x</span></span><span class="keyword operator arithmetic python">*</span><span class="keyword operator arithmetic python">*</span><span class="constant numeric integer decimal python">2</span> <span class="keyword operator arithmetic python">+</span> <span class="meta qualified-name python"><span class="meta generic-name python">x</span></span><span class="keyword operator arithmetic python">*</span><span class="keyword operator arithmetic python">*</span><span class="constant numeric integer decimal python">3</span><span class="punctuation section group end python">)</span></span> <span class="keyword operator arithmetic python">/</span> <span class="meta group python"><span class="punctuation section group begin python">(</span><span class="constant numeric float python">24<span class="punctuation separator decimal python">.</span>0</span> <span class="keyword operator arithmetic python">*</span> <span class="meta qualified-name python"><span class="meta generic-name python">E</span></span> <span class="keyword operator arithmetic python">*</span> <span class="meta qualified-name python"><span class="meta generic-name python">I</span></span><span class="punctuation section group end python">)</span></span></span></span>
+<span class="line"><span class="source python"></span></span>
+<span class="line"><span class="source python"><span class="meta function python"><span class="storage type function python">def</span> <span class="entity name function python"><span class="meta generic-name python">numerische_loesung</span></span></span><span class="meta function parameters python"><span class="punctuation section parameters begin python">(</span></span><span class="meta function parameters python"><span class="variable parameter python">L</span></span><span class="meta function parameters annotation python"><span class="punctuation separator annotation parameter python">:</span> <span class="meta qualified-name python"><span class="support type python">float</span></span></span><span class="meta function parameters python"><span class="punctuation separator parameters python">,</span> <span class="variable parameter python">q</span></span><span class="meta function parameters annotation python"><span class="punctuation separator annotation parameter python">:</span> <span class="meta qualified-name python"><span class="support type python">float</span></span></span><span class="meta function parameters python"><span class="punctuation separator parameters python">,</span> <span class="variable parameter python">E</span></span><span class="meta function parameters annotation python"><span class="punctuation separator annotation parameter python">:</span> <span class="meta qualified-name python"><span class="support type python">float</span></span></span><span class="meta function parameters python"><span class="punctuation separator parameters python">,</span> <span class="variable parameter python">I</span></span><span class="meta function parameters annotation python"><span class="punctuation separator annotation parameter python">:</span> <span class="meta qualified-name python"><span class="support type python">float</span></span></span><span class="meta function parameters python"><span class="punctuation separator parameters python">,</span> <span class="variable parameter python">n</span></span><span class="meta function parameters annotation python"><span class="punctuation separator annotation parameter python">:</span> <span class="meta qualified-name python"><span class="support type python">int</span></span> </span><span class="meta function parameters default-value python"><span class="keyword operator assignment python">=</span> <span class="constant numeric integer decimal python">101</span></span><span class="meta function parameters python"><span class="punctuation section parameters end python">)</span></span><span class="meta function python"> </span><span class="meta function annotation return python"><span class="punctuation separator annotation return python">-&gt;</span> <span class="meta qualified-name python"><span class="meta generic-name python">np</span><span class="punctuation accessor dot python">.</span><span class="meta generic-name python">ndarray</span></span></span><span class="meta function python"><span class="punctuation section function begin python">:</span></span></span></span>
+<span class="line"><span class="source python">    <span class="comment block documentation python"><span class="punctuation definition comment begin python">&quot;&quot;&quot;</span>Löst E I w&#39;&#39;&#39;&#39; = q mit finiten Differenzen und w(0) = w(L) = 0, w&#39;&#39;(0) = w&#39;&#39;(L) = 0.<span class="punctuation definition comment end python">&quot;&quot;&quot;</span></span></span></span>
+<span class="line"><span class="source python">    <span class="meta qualified-name python"><span class="meta generic-name python">h</span></span> <span class="keyword operator assignment python">=</span> <span class="meta qualified-name python"><span class="meta generic-name python">L</span></span> <span class="keyword operator arithmetic python">/</span> <span class="meta group python"><span class="punctuation section group begin python">(</span><span class="meta qualified-name python"><span class="meta generic-name python">n</span></span> <span class="keyword operator arithmetic python">-</span> <span class="constant numeric integer decimal python">1</span><span class="punctuation section group end python">)</span></span></span></span>
+<span class="line"><span class="source python">    <span class="meta qualified-name python"><span class="meta generic-name python">A</span></span> <span class="keyword operator assignment python">=</span> <span class="meta function-call python"><span class="meta qualified-name python"><span class="meta generic-name python">np</span><span class="punctuation accessor dot python">.</span></span><span class="meta qualified-name python"><span class="variable function python">zeros</span></span><span class="punctuation section arguments begin python">(</span><span class="meta function-call arguments python"><span class="meta group python"><span class="punctuation section group begin python">(</span><span class="meta qualified-name python"><span class="meta generic-name python">n</span></span><span class="punctuation separator tuple python">,</span> <span class="meta qualified-name python"><span class="meta generic-name python">n</span></span><span class="punctuation section group end python">)</span></span></span><span class="punctuation section arguments end python">)</span></span><span class="punctuation terminator statement python">;</span> <span class="meta qualified-name python"><span class="meta generic-name python">b</span></span> <span class="keyword operator assignment python">=</span> <span class="meta function-call python"><span class="meta qualified-name python"><span class="meta generic-name python">np</span><span class="punctuation accessor dot python">.</span></span><span class="meta qualified-name python"><span class="variable function python">full</span></span><span class="punctuation section arguments begin python">(</span><span class="meta function-call arguments python"><span class="meta qualified-name python"><span class="meta generic-name python">n</span></span><span class="punctuation separator arguments python">,</span> <span class="meta qualified-name python"><span class="meta generic-name python">q</span></span> <span class="keyword operator arithmetic python">*</span> <span class="meta qualified-name python"><span class="meta generic-name python">h</span></span><span class="keyword operator arithmetic python">*</span><span class="keyword operator arithmetic python">*</span><span class="constant numeric integer decimal python">4</span> <span class="keyword operator arithmetic python">/</span> <span class="meta group python"><span class="punctuation section group begin python">(</span><span class="meta qualified-name python"><span class="meta generic-name python">E</span></span> <span class="keyword operator arithmetic python">*</span> <span class="meta qualified-name python"><span class="meta generic-name python">I</span></span><span class="punctuation section group end python">)</span></span></span><span class="punctuation section arguments end python">)</span></span></span></span>
+<span class="line"><span class="source python">    <span class="meta statement for python"><span class="keyword control flow for python">for</span> <span class="meta generic-name python">i</span> <span class="meta statement for python"><span class="keyword control flow for in python">in</span></span></span><span class="meta statement for python"> <span class="meta function-call python"><span class="meta qualified-name python"><span class="support function builtin python">range</span></span><span class="punctuation section arguments begin python">(</span><span class="meta function-call arguments python"><span class="constant numeric integer decimal python">2</span><span class="punctuation separator arguments python">,</span> <span class="meta qualified-name python"><span class="meta generic-name python">n</span></span> <span class="keyword operator arithmetic python">-</span> <span class="constant numeric integer decimal python">2</span></span><span class="punctuation section arguments end python">)</span></span><span class="punctuation section block for python">:</span></span></span></span>
+<span class="line"><span class="source python">        <span class="meta item-access python"><span class="meta qualified-name python"><span class="meta generic-name python">A</span></span></span><span class="meta item-access python"><span class="punctuation section brackets begin python">[</span></span><span class="meta item-access arguments python"><span class="meta qualified-name python"><span class="meta generic-name python">i</span></span>, <span class="meta qualified-name python"><span class="meta generic-name python">i</span></span><span class="keyword operator arithmetic python">-</span><span class="constant numeric integer decimal python">2</span><span class="punctuation separator slice python">:</span><span class="meta qualified-name python"><span class="meta generic-name python">i</span></span><span class="keyword operator arithmetic python">+</span><span class="constant numeric integer decimal python">3</span></span><span class="meta item-access python"><span class="punctuation section brackets end python">]</span></span> <span class="keyword operator assignment python">=</span> <span class="meta structure list python"><span class="punctuation section list begin python">[</span><span class="constant numeric float python">1<span class="punctuation separator decimal python">.</span>0</span><span class="punctuation separator list python">,</span> <span class="keyword operator arithmetic python">-</span><span class="constant numeric float python">4<span class="punctuation separator decimal python">.</span>0</span><span class="punctuation separator list python">,</span> <span class="constant numeric float python">6<span class="punctuation separator decimal python">.</span>0</span><span class="punctuation separator list python">,</span> <span class="keyword operator arithmetic python">-</span><span class="constant numeric float python">4<span class="punctuation separator decimal python">.</span>0</span><span class="punctuation separator list python">,</span> <span class="constant numeric float python">1<span class="punctuation separator decimal python">.</span>0</span><span class="punctuation section list end python">]</span></span></span></span>
+<span class="line"><span class="source python">    <span class="meta item-access python"><span class="meta qualified-name python"><span class="meta generic-name python">A</span></span></span><span class="meta item-access python"><span class="punctuation section brackets begin python">[</span></span><span class="meta item-access arguments python"><span class="constant numeric integer decimal python">0</span>, <span class="constant numeric integer decimal python">0</span></span><span class="meta item-access python"><span class="punctuation section brackets end python">]</span></span> <span class="keyword operator assignment python">=</span> <span class="meta item-access python"><span class="meta qualified-name python"><span class="meta generic-name python">A</span></span></span><span class="meta item-access python"><span class="punctuation section brackets begin python">[</span></span><span class="meta item-access arguments python"><span class="meta qualified-name python"><span class="meta generic-name python">n</span></span><span class="keyword operator arithmetic python">-</span><span class="constant numeric integer decimal python">1</span>, <span class="meta qualified-name python"><span class="meta generic-name python">n</span></span><span class="keyword operator arithmetic python">-</span><span class="constant numeric integer decimal python">1</span></span><span class="meta item-access python"><span class="punctuation section brackets end python">]</span></span> <span class="keyword operator assignment python">=</span> <span class="constant numeric float python">1<span class="punctuation separator decimal python">.</span>0</span><span class="punctuation terminator statement python">;</span> <span class="meta item-access python"><span class="meta qualified-name python"><span class="meta generic-name python">b</span></span></span><span class="meta item-access python"><span class="punctuation section brackets begin python">[</span></span><span class="meta item-access arguments python"><span class="constant numeric integer decimal python">0</span></span><span class="meta item-access python"><span class="punctuation section brackets end python">]</span></span> <span class="keyword operator assignment python">=</span> <span class="meta item-access python"><span class="meta qualified-name python"><span class="meta generic-name python">b</span></span></span><span class="meta item-access python"><span class="punctuation section brackets begin python">[</span></span><span class="meta item-access arguments python"><span class="meta qualified-name python"><span class="meta generic-name python">n</span></span><span class="keyword operator arithmetic python">-</span><span class="constant numeric integer decimal python">1</span></span><span class="meta item-access python"><span class="punctuation section brackets end python">]</span></span> <span class="keyword operator assignment python">=</span> <span class="constant numeric float python">0<span class="punctuation separator decimal python">.</span>0</span>          <span class="comment line number-sign python"><span class="punctuation definition comment python">#</span> w = 0 an den Auflagern</span></span></span>
+<span class="line"><span class="source python"><span class="comment line number-sign python"></span>    <span class="meta item-access python"><span class="meta qualified-name python"><span class="meta generic-name python">A</span></span></span><span class="meta item-access python"><span class="punctuation section brackets begin python">[</span></span><span class="meta item-access arguments python"><span class="constant numeric integer decimal python">1</span>, <span class="constant numeric integer decimal python">0</span><span class="punctuation separator slice python">:</span><span class="constant numeric integer decimal python">3</span></span><span class="meta item-access python"><span class="punctuation section brackets end python">]</span></span> <span class="keyword operator assignment python">=</span> <span class="meta structure list python"><span class="punctuation section list begin python">[</span><span class="constant numeric float python">1<span class="punctuation separator decimal python">.</span>0</span><span class="punctuation separator list python">,</span> <span class="keyword operator arithmetic python">-</span><span class="constant numeric float python">2<span class="punctuation separator decimal python">.</span>0</span><span class="punctuation separator list python">,</span> <span class="constant numeric float python">1<span class="punctuation separator decimal python">.</span>0</span><span class="punctuation section list end python">]</span></span><span class="punctuation terminator statement python">;</span> <span class="meta item-access python"><span class="meta qualified-name python"><span class="meta generic-name python">b</span></span></span><span class="meta item-access python"><span class="punctuation section brackets begin python">[</span></span><span class="meta item-access arguments python"><span class="constant numeric integer decimal python">1</span></span><span class="meta item-access python"><span class="punctuation section brackets end python">]</span></span> <span class="keyword operator assignment python">=</span> <span class="constant numeric float python">0<span class="punctuation separator decimal python">.</span>0</span>                   <span class="comment line number-sign python"><span class="punctuation definition comment python">#</span> w&#39;&#39; = 0 (Gelenk links)</span></span></span>
+<span class="line"><span class="source python"><span class="comment line number-sign python"></span>    <span class="meta item-access python"><span class="meta qualified-name python"><span class="meta generic-name python">A</span></span></span><span class="meta item-access python"><span class="punctuation section brackets begin python">[</span></span><span class="meta item-access arguments python"><span class="meta qualified-name python"><span class="meta generic-name python">n</span></span><span class="keyword operator arithmetic python">-</span><span class="constant numeric integer decimal python">2</span>, <span class="meta qualified-name python"><span class="meta generic-name python">n</span></span><span class="keyword operator arithmetic python">-</span><span class="constant numeric integer decimal python">3</span><span class="punctuation separator slice python">:</span><span class="meta qualified-name python"><span class="meta generic-name python">n</span></span></span><span class="meta item-access python"><span class="punctuation section brackets end python">]</span></span> <span class="keyword operator assignment python">=</span> <span class="meta structure list python"><span class="punctuation section list begin python">[</span><span class="constant numeric float python">1<span class="punctuation separator decimal python">.</span>0</span><span class="punctuation separator list python">,</span> <span class="keyword operator arithmetic python">-</span><span class="constant numeric float python">2<span class="punctuation separator decimal python">.</span>0</span><span class="punctuation separator list python">,</span> <span class="constant numeric float python">1<span class="punctuation separator decimal python">.</span>0</span><span class="punctuation section list end python">]</span></span><span class="punctuation terminator statement python">;</span> <span class="meta item-access python"><span class="meta qualified-name python"><span class="meta generic-name python">b</span></span></span><span class="meta item-access python"><span class="punctuation section brackets begin python">[</span></span><span class="meta item-access arguments python"><span class="meta qualified-name python"><span class="meta generic-name python">n</span></span><span class="keyword operator arithmetic python">-</span><span class="constant numeric integer decimal python">2</span></span><span class="meta item-access python"><span class="punctuation section brackets end python">]</span></span> <span class="keyword operator assignment python">=</span> <span class="constant numeric float python">0<span class="punctuation separator decimal python">.</span>0</span>             <span class="comment line number-sign python"><span class="punctuation definition comment python">#</span> w&#39;&#39; = 0 (Gelenk rechts)</span></span></span>
+<span class="line"><span class="source python"><span class="comment line number-sign python"></span>    <span class="keyword control flow return python">return</span> <span class="meta function-call python"><span class="meta qualified-name python"><span class="meta generic-name python">np</span><span class="punctuation accessor dot python">.</span><span class="meta generic-name python">linalg</span><span class="punctuation accessor dot python">.</span></span><span class="meta qualified-name python"><span class="variable function python">solve</span></span><span class="punctuation section arguments begin python">(</span><span class="meta function-call arguments python"><span class="meta qualified-name python"><span class="meta generic-name python">A</span></span><span class="punctuation separator arguments python">,</span> <span class="meta qualified-name python"><span class="meta generic-name python">b</span></span></span><span class="punctuation section arguments end python">)</span></span></span></span>
+<span class="line"><span class="source python"></span></span>
+<span class="line"><span class="source python"><span class="meta statement if python"><span class="keyword control flow conditional python">if</span> <span class="meta qualified-name python"><span class="support variable magic python">__name__</span></span> <span class="keyword operator comparison python">==</span> <span class="meta string python"><span class="string quoted double python"><span class="punctuation definition string begin python">&quot;</span></span></span><span class="meta string python"><span class="string quoted double python">__main__<span class="punctuation definition string end python">&quot;</span></span></span><span class="punctuation section block conditional python">:</span></span></span></span>
+<span class="line"><span class="source python">    <span class="meta qualified-name python"><span class="meta generic-name python">L</span></span>, <span class="meta qualified-name python"><span class="meta generic-name python">q</span></span>, <span class="meta qualified-name python"><span class="meta generic-name python">E</span></span>, <span class="meta qualified-name python"><span class="meta generic-name python">I</span></span> <span class="keyword operator assignment python">=</span> <span class="constant numeric float python">6<span class="punctuation separator decimal python">.</span>0</span>, <span class="constant numeric float python">10_000<span class="punctuation separator decimal python">.</span>0</span>, <span class="constant numeric float python">210e9</span>, <span class="constant numeric float python">83<span class="punctuation separator decimal python">.</span>3e-6</span></span></span>
+<span class="line"><span class="source python">    <span class="meta qualified-name python"><span class="meta generic-name python">w_a</span></span> <span class="keyword operator assignment python">=</span> <span class="meta function-call python"><span class="meta qualified-name python"><span class="variable function python">analytische_loesung</span></span><span class="punctuation section arguments begin python">(</span><span class="meta function-call arguments python"><span class="meta qualified-name python"><span class="meta generic-name python">L</span></span><span class="punctuation separator arguments python">,</span> <span class="meta qualified-name python"><span class="meta generic-name python">q</span></span><span class="punctuation separator arguments python">,</span> <span class="meta qualified-name python"><span class="meta generic-name python">E</span></span><span class="punctuation separator arguments python">,</span> <span class="meta qualified-name python"><span class="meta generic-name python">I</span></span></span><span class="punctuation section arguments end python">)</span></span></span></span>
+<span class="line"><span class="source python">    <span class="meta qualified-name python"><span class="meta generic-name python">w_n</span></span> <span class="keyword operator assignment python">=</span> <span class="meta function-call python"><span class="meta qualified-name python"><span class="variable function python">numerische_loesung</span></span><span class="punctuation section arguments begin python">(</span><span class="meta function-call arguments python"><span class="meta qualified-name python"><span class="meta generic-name python">L</span></span><span class="punctuation separator arguments python">,</span> <span class="meta qualified-name python"><span class="meta generic-name python">q</span></span><span class="punctuation separator arguments python">,</span> <span class="meta qualified-name python"><span class="meta generic-name python">E</span></span><span class="punctuation separator arguments python">,</span> <span class="meta qualified-name python"><span class="meta generic-name python">I</span></span></span><span class="punctuation section arguments end python">)</span></span></span></span>
+<span class="line"><span class="source python">    <span class="meta function-call python"><span class="meta qualified-name python"><span class="support function builtin python">print</span></span><span class="punctuation section arguments begin python">(</span><span class="meta function-call arguments python"><span class="storage type string python">f</span><span class="meta string interpolated python"><span class="string quoted double python"><span class="punctuation definition string begin python">&quot;</span></span></span><span class="meta string interpolated python"><span class="string quoted double python">analytisch w_max = </span><span class="meta interpolation python"><span class="punctuation section interpolation begin python">{</span><span class="source python embedded"><span class="constant numeric integer decimal python">1000</span> <span class="keyword operator arithmetic python">*</span> <span class="meta function-call python"><span class="meta qualified-name python"><span class="meta generic-name python">w_a</span><span class="punctuation accessor dot python">.</span></span><span class="meta qualified-name python"><span class="variable function python">max</span></span><span class="punctuation section arguments begin python">(</span><span class="punctuation section arguments end python">)</span></span></span><span class="meta format-spec python"><span class="constant other format-spec python">:.3f</span></span></span><span class="meta interpolation python"><span class="punctuation section interpolation end python">}</span></span><span class="string quoted double python"> mm, numerisch w_max = </span><span class="meta interpolation python"><span class="punctuation section interpolation begin python">{</span><span class="source python embedded"><span class="constant numeric integer decimal python">1000</span> <span class="keyword operator arithmetic python">*</span> <span class="meta function-call python"><span class="meta qualified-name python"><span class="meta generic-name python">w_n</span><span class="punctuation accessor dot python">.</span></span><span class="meta qualified-name python"><span class="variable function python">max</span></span><span class="punctuation section arguments begin python">(</span><span class="punctuation section arguments end python">)</span></span></span><span class="meta format-spec python"><span class="constant other format-spec python">:.3f</span></span></span><span class="meta interpolation python"><span class="punctuation section interpolation end python">}</span></span><span class="string quoted double python"> mm<span class="punctuation definition string end python">&quot;</span></span></span></span><span class="punctuation section arguments end python">)</span></span></span></span>
+<span class="line"><span class="source python">    <span class="meta function-call python"><span class="meta qualified-name python"><span class="support function builtin python">print</span></span><span class="punctuation section arguments begin python">(</span><span class="meta function-call arguments python"><span class="storage type string python">f</span><span class="meta string interpolated python"><span class="string quoted double python"><span class="punctuation definition string begin python">&quot;</span></span></span><span class="meta string interpolated python"><span class="string quoted double python">relative Abweichung = </span><span class="meta interpolation python"><span class="punctuation section interpolation begin python">{</span><span class="source python embedded"><span class="meta function-call python"><span class="meta qualified-name python"><span class="support function builtin python">abs</span></span><span class="punctuation section arguments begin python">(</span><span class="meta function-call arguments python"><span class="meta function-call python"><span class="meta qualified-name python"><span class="meta generic-name python">w_n</span><span class="punctuation accessor dot python">.</span></span><span class="meta qualified-name python"><span class="variable function python">max</span></span><span class="punctuation section arguments begin python">(</span><span class="punctuation section arguments end python">)</span></span> <span class="keyword operator arithmetic python">-</span> <span class="meta function-call python"><span class="meta qualified-name python"><span class="meta generic-name python">w_a</span><span class="punctuation accessor dot python">.</span></span><span class="meta qualified-name python"><span class="variable function python">max</span></span><span class="punctuation section arguments begin python">(</span><span class="punctuation section arguments end python">)</span></span></span><span class="punctuation section arguments end python">)</span></span> <span class="keyword operator arithmetic python">/</span> <span class="meta function-call python"><span class="meta qualified-name python"><span class="meta generic-name python">w_a</span><span class="punctuation accessor dot python">.</span></span><span class="meta qualified-name python"><span class="variable function python">max</span></span><span class="punctuation section arguments begin python">(</span><span class="punctuation section arguments end python">)</span></span></span><span class="meta format-spec python"><span class="constant other format-spec python">:.2e</span></span></span><span class="meta interpolation python"><span class="punctuation section interpolation end python">}</span></span><span class="string quoted double python"><span class="punctuation definition string end python">&quot;</span></span></span></span><span class="punctuation section arguments end python">)</span></span></span></span>
+</code></pre>
+<h2 id="grafische-ergebnisse">Grafische Ergebnisse<a aria-label="Link to heading 'Grafische Ergebnisse'" class="anchor" data-heading-content="Grafische Ergebnisse" href="#grafische-ergebnisse"></a></h2>
+<p>Die Bie­gel­i­nien bei­der Lösun­gen zeigt die fol­gende Abbil­dung.</p>
+<figure><img alt="Bie­gel­i­nie — Ver­gleich der ana­ly­ti­schen und nume­ri­schen Lösung" src="img_balkendurchbiegung/verlauf-71b5c802.png" /><figcaption><span class="fignum">Abb. 1:</span> Bie­gel­i­nie — Ver­gleich der ana­ly­ti­schen und nume­ri­schen Lösung</figcaption></figure>
+<p>Das sta­ti­sche Sys­tem, gespei­chert unter dem­sel­ben Datei­na­men in einem
+ande­ren Ord­ner:</p>
+<figure><img alt="Sta­ti­sches Sys­tem des Ein­feld­trä­gers" src="img_balkendurchbiegung/verlauf-4886b5ba.png" /><figcaption><span class="fignum">Abb. 2:</span> Sta­ti­sches Sys­tem des Ein­feld­trä­gers</figcaption></figure>
+<h2 id="quelle-vs-ergebnis">Quelle vs. Ergebnis<a aria-label="Link to heading 'Quelle vs. Ergebnis'" class="anchor" data-heading-content="Quelle vs. Ergebnis" href="#quelle-vs-ergebnis"></a></h2>
+<p>Die­ses Doku­ment ent­stand aus rei­nem Mark­down. Der fol­gende Block ist der
+wört­li­che Quell­text (in Code­blö­cken wer­den die typo­gra­fi­schen Regeln
+absicht­lich nicht ange­wen­det):</p>
 <pre><code class="language-markdown"><span class="line"><span class="text html markdown"><span class="meta paragraph markdown">Er sagte &quot;die Spannweite beträgt 6 m&quot; - d. h. auf S. 12 steht ein</span></span></span>
 <span class="line"><span class="text html markdown"><span class="meta paragraph markdown">Querschnitt 40x60 mm, geprüft am 1. 10. 2026 bei 25 °C... Vgl. Nr. 5.</span></span></span>
 </code></pre>
+<p>Und so setzt mdprint den­sel­ben Text:</p>
 <p>Er sagte „die Spann­weite beträgt 6 m“ – d. h. auf S. 12 steht ein
 Quer­schnitt 40×60 mm, geprüft am 1. 10. 2026 bei 25 °C… Vgl. Nr. 5.</p>
-<p>Anfüh­rungs­zei­chen, Gedan­ken­strich, geschützte Leer­zei­chen in Abkür­zung,
-Datum und Ein­heit, Mal­zei­chen und Aus­las­sungs­punkte – alles auto­ma­tisch.</p>
+<p>Der Unter­schied liegt in den Details, die über die Les­bar­keit ent­schei­den:
+Gän­se­füß­chen, Gedan­ken­strich, geschützte Leer­zei­chen in Abkür­zung, Datum
+und Ein­heit, ech­tes Mal­zei­chen und Aus­las­sungs­punkte. Mathe­ma­tik wird
+gesetzt; Code und Pfade blei­ben unbe­rührt.</p>
+<h2 id="fazit">Fazit<a aria-label="Link to heading 'Fazit'" class="anchor" data-heading-content="Fazit" href="#fazit"></a></h2>
+<p>Die nume­ri­sche Lösung weicht um weni­ger als 0,01 % von der ana­ly­ti­schen ab,
+was beide Ansätze bestä­tigt. Die Bezie­hung
+<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo><mo>=</mo><mfrac><mrow><mi>q</mi><mi>x</mi><mo stretchy="false">(</mo><msup><mi>L</mi><mn>3</mn></msup><mo>−</mo><mn>2</mn><mi>L</mi><msup><mi>x</mi><mn>2</mn></msup><mo>+</mo><msup><mi>x</mi><mn>3</mn></msup><mo stretchy="false">)</mo></mrow><mrow><mn>24</mn><mi>E</mi><mi>I</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">w(x) = \frac{q x (L^3 - 2Lx^2 + x^3)}{24 E I}</annotation></semantics></math></span><span aria-hidden="true" class="katex-html"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0269em;">w</span><span class="mopen">(</span><span class="mord mathnormal">x</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.4539em;vertical-align:-0.345em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.1089em;"><span style="top:-2.655em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">24</span><span class="mord mathnormal mtight" style="margin-right:0.0576em;">E</span><span class="mord mathnormal mtight" style="margin-right:0.0785em;">I</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.485em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0359em;">q</span><span class="mord mathnormal mtight">x</span><span class="mopen mtight">(</span><span class="mord mtight"><span class="mord mathnormal mtight">L</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8913em;"><span style="margin-right:0.0714em;top:-2.931em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight">3</span></span></span></span></span></span></span></span><span class="mbin mtight">−</span><span class="mord mtight">2</span><span class="mord mathnormal mtight">L</span><span class="mord mtight"><span class="mord mathnormal mtight">x</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8913em;"><span style="margin-right:0.0714em;top:-2.931em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mbin mtight">+</span><span class="mord mtight"><span class="mord mathnormal mtight">x</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8913em;"><span style="margin-right:0.0714em;top:-2.931em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight">3</span></span></span></span></span></span></span></span><span class="mclose mtight">)</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span> eig­net sich daher für
+schnelle Nach­weise<sup class="footnote-ref"><a href="#fn-nachweis" id="fnref-nachweis" data-footnote-ref>2</a></sup>. Zum Abschluss eine Defi­ni­tion:</p>
+<dl>
+<dt>Grenz­zu­stand der Gebrauchs­taug­lich­keit</dt>
+<dd>
+<p>Zustand, bei des­sen Über­schrei­tung das Trag­werk die Nut­zungs­an­for­de­run­gen
+nicht mehr erfüllt, obwohl kein Ver­sa­gen ein­tritt.</p>
+</dd>
+</dl>
+<section class="footnotes" data-footnotes>
+<ol>
+<li id="fn-dv">
+<p>Dif­fe­ren­zen­ver­fah­ren (Methode der fini­ten Dif­fe­ren­zen) — die
+Ablei­tun­gen der Dif­fe­ren­ti­al­glei­chung wer­den durch Dif­fe­ren­zen­quo­ti­en­ten
+auf einem regel­mä­ßi­gen Netz ersetzt. Nicht zu ver­wech­seln mit der
+Finite-Ele­mente-Methode, die eine Nähe­rungs­lö­sung in schwa­cher
+For­mu­lie­rung über Ele­ment­an­satz­funk­tio­nen sucht. <a href="#fnref-dv" class="footnote-backref" data-footnote-backref data-footnote-backref-idx="1" aria-label="Back to reference 1">↩</a></p>
+</li>
+<li id="fn-nachweis">
+<p>Ein Nach­weis nach EN 1990 erfor­dert Last­kom­bi­na­tio­nen, die
+die­ser Text der Kürze hal­ber aus­lässt. <a href="#fnref-nachweis" class="footnote-backref" data-footnote-backref data-footnote-backref-idx="2" aria-label="Back to reference 2">↩</a></p>
+</li>
+</ol>
+</section>
 
 </article>
 </body>

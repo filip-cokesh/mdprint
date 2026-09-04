@@ -1,0 +1,179 @@
+---
+title: Durchbiegung eines Einfeldträgers unter Gleichstreckenlast
+author: Filip Hokeš
+date: 2026-09-04
+version: "1.2"
+lang: de
+---
+
+<nav style="text-align:right;font-size:0.85em"><a href="index.html">Čeština</a> · <a href="en.html">English</a> · <a href="de.html">Deutsch</a></nav>
+
+## Einleitung
+
+Diese Studie behandelt die Durchbiegung eines Einfeldträgers mit der
+Spannweite $L$ unter einer Gleichstreckenlast $q$. Ziel ist es, die
+geschlossene analytische Lösung mit einer numerischen Lösung nach dem
+Differenzenverfahren[^dv] zu vergleichen und zu zeigen, unter welchen
+Bedingungen die Bernoulli-Navier-Hypothese ausreicht. In den 1960er-Jahren
+las man solche Werte aus Tafeln ab; heute genügt ein Skript mit wenigen
+Dutzend Zeilen.
+
+[^dv]: Differenzenverfahren (Methode der finiten Differenzen) — die
+    Ableitungen der Differentialgleichung werden durch Differenzenquotienten
+    auf einem regelmäßigen Netz ersetzt. Nicht zu verwechseln mit der
+    Finite-Elemente-Methode, die eine Näherungslösung in schwacher
+    Formulierung über Elementansatzfunktionen sucht.
+
+Die maximale Durchbiegung in Feldmitte beträgt
+
+$$w_{\max} = \frac{5\,q\,L^4}{384\,E\,I},$$
+
+wobei $E$ der Elastizitätsmodul und $I$ das Flächenträgheitsmoment ist.
+Für Stahl gilt $E = 210\,\mathrm{GPa}$; Holz ist rund zehnmal weicher.
+Die Norm begrenzt die bezogene Durchbiegung $w_{\max}/L$ üblicherweise
+auf 1/250.
+
+Die Formel beruht auf der Bernoulli-Navier-Hypothese, die den Schubanteil
+der Durchbiegung vernachlässigt. Über dessen Größe entscheidet nicht die
+Schlankheit an sich, sondern das **Verhältnis von Biege- zu Schubsteifigkeit**:
+für Gleichlast gilt
+
+$$\frac{w_{\mathrm{V}}}{w_{\mathrm{M}}} = \frac{q L^2 / (8\,G\,A_{\mathrm{s}})}
+{5\,q\,L^4 / (384\,E\,I)} = 9{,}6\,\frac{E\,I}{G\,A_{\mathrm{s}}\,L^2},$$
+
+wobei $G$ der Schubmodul und $A_{\mathrm{s}}$ die Schubfläche ist. Erst beim
+homogenen Rechteckquerschnitt vereinfacht sich der Ausdruck zu
+$\approx 2{,}5\,(h/L)^2$ — für $h/L = 1/20$ macht der Schubanteil also etwa
+0,6 % aus, woher die bekannte Schlankheitsfaustregel stammt. Bei
+Querschnitten mit kleinem $G\,A_{\mathrm{s}}$ — z. B. Sandwich-,
+dünnwandigen oder Verbundprofilen — kann der Schub jedoch auch bei sehr
+schlanken Trägern relevant sein, d. h. die Timoshenko-Theorie ist dann
+angebracht.
+
+## Eingangsdaten und Parameterstudie
+
+Die folgende Tabelle fasst eine Parameterstudie mit 36 Kombinationen aus
+Spannweite und Last zusammen. Sie läuft absichtlich über eine Seite, um die
+Wiederholung des Tabellenkopfs im Druck zu prüfen.
+
+| Nr. | L [m] | q [kN/m] | E [GPa] | I [10⁻⁶ m⁴] | w_max [mm] | w/L [–] |
+|---:|------:|---------:|--------:|------------:|-----------:|--------:|
+| 1 | 3,0 | 5,0 | 210 | 83,3 | 0,60 | 1/4970 |
+| 2 | 3,0 | 10,0 | 210 | 83,3 | 1,21 | 1/2485 |
+| 3 | 3,0 | 15,0 | 210 | 83,3 | 1,81 | 1/1657 |
+| 4 | 3,5 | 5,0 | 210 | 83,3 | 1,12 | 1/3133 |
+| 5 | 3,5 | 10,0 | 210 | 83,3 | 2,23 | 1/1567 |
+| 6 | 3,5 | 15,0 | 210 | 83,3 | 3,35 | 1/1044 |
+| 7 | 4,0 | 5,0 | 210 | 83,3 | 1,90 | 1/2100 |
+| 8 | 4,0 | 10,0 | 210 | 83,3 | 3,81 | 1/1050 |
+| 9 | 4,0 | 15,0 | 210 | 83,3 | 5,71 | 1/700 |
+| 10 | 4,5 | 5,0 | 210 | 83,3 | 3,05 | 1/1475 |
+| 11 | 4,5 | 10,0 | 210 | 83,3 | 6,10 | 1/738 |
+| 12 | 4,5 | 15,0 | 210 | 83,3 | 9,15 | 1/492 |
+| 13 | 5,0 | 5,0 | 210 | 83,3 | 4,65 | 1/1075 |
+| 14 | 5,0 | 10,0 | 210 | 83,3 | 9,30 | 1/538 |
+| 15 | 5,0 | 15,0 | 210 | 83,3 | 13,95 | 1/358 |
+| 16 | 5,5 | 5,0 | 210 | 83,3 | 6,81 | 1/808 |
+| 17 | 5,5 | 10,0 | 210 | 83,3 | 13,62 | 1/404 |
+| 18 | 5,5 | 15,0 | 210 | 83,3 | 20,43 | 1/269 |
+| 19 | 6,0 | 5,0 | 210 | 83,3 | 9,64 | 1/622 |
+| 20 | 6,0 | 10,0 | 210 | 83,3 | 19,28 | 1/311 |
+| 21 | 6,0 | 15,0 | 210 | 83,3 | 28,93 | 1/207 |
+| 22 | 6,5 | 5,0 | 210 | 83,3 | 13,29 | 1/489 |
+| 23 | 6,5 | 10,0 | 210 | 83,3 | 26,57 | 1/245 |
+| 24 | 6,5 | 15,0 | 210 | 83,3 | 39,86 | 1/163 |
+| 25 | 7,0 | 5,0 | 210 | 83,3 | 17,86 | 1/392 |
+| 26 | 7,0 | 10,0 | 210 | 83,3 | 35,71 | 1/196 |
+| 27 | 7,0 | 15,0 | 210 | 83,3 | 53,57 | 1/131 |
+| 28 | 7,5 | 5,0 | 210 | 83,3 | 23,54 | 1/319 |
+| 29 | 7,5 | 10,0 | 210 | 83,3 | 47,08 | 1/159 |
+| 30 | 7,5 | 15,0 | 210 | 83,3 | 70,62 | 1/106 |
+| 31 | 8,0 | 5,0 | 210 | 83,3 | 30,48 | 1/262 |
+| 32 | 8,0 | 10,0 | 210 | 83,3 | 60,95 | 1/131 |
+| 33 | 8,0 | 15,0 | 210 | 83,3 | 91,43 | 1/87 |
+| 34 | 8,5 | 5,0 | 210 | 83,3 | 38,84 | 1/219 |
+| 35 | 8,5 | 10,0 | 210 | 83,3 | 77,68 | 1/109 |
+| 36 | 8,5 | 15,0 | 210 | 83,3 | 116,52 | 1/73 |
+
+Spannweiten über 8,0 m verletzen den Grenzwert 1/250 deutlich und verlangen
+einen höheren Querschnitt oder eine Überhöhung.
+
+## Berechnungsskript
+
+Die analytische Lösung wird durch das folgende Skript geprüft. Die Zeilen
+sind absichtlich lang, um den Zeilenumbruch im Druck zu testen.
+
+```python
+"""Durchbiegung des Einfeldträgers: analytisch vs. numerisch (Differenzenverfahren)."""
+import numpy as np
+
+def analytische_loesung(L: float, q: float, E: float, I: float, n: int = 101) -> np.ndarray:
+    """Biegelinie w(x) = q x (L^3 - 2 L x^2 + x^3) / (24 E I)."""
+    x = np.linspace(0.0, L, n)
+    return q * x * (L**3 - 2.0 * L * x**2 + x**3) / (24.0 * E * I)
+
+def numerische_loesung(L: float, q: float, E: float, I: float, n: int = 101) -> np.ndarray:
+    """Löst E I w'''' = q mit finiten Differenzen und w(0) = w(L) = 0, w''(0) = w''(L) = 0."""
+    h = L / (n - 1)
+    A = np.zeros((n, n)); b = np.full(n, q * h**4 / (E * I))
+    for i in range(2, n - 2):
+        A[i, i-2:i+3] = [1.0, -4.0, 6.0, -4.0, 1.0]
+    A[0, 0] = A[n-1, n-1] = 1.0; b[0] = b[n-1] = 0.0          # w = 0 an den Auflagern
+    A[1, 0:3] = [1.0, -2.0, 1.0]; b[1] = 0.0                   # w'' = 0 (Gelenk links)
+    A[n-2, n-3:n] = [1.0, -2.0, 1.0]; b[n-2] = 0.0             # w'' = 0 (Gelenk rechts)
+    return np.linalg.solve(A, b)
+
+if __name__ == "__main__":
+    L, q, E, I = 6.0, 10_000.0, 210e9, 83.3e-6
+    w_a = analytische_loesung(L, q, E, I)
+    w_n = numerische_loesung(L, q, E, I)
+    print(f"analytisch w_max = {1000 * w_a.max():.3f} mm, numerisch w_max = {1000 * w_n.max():.3f} mm")
+    print(f"relative Abweichung = {abs(w_n.max() - w_a.max()) / w_a.max():.2e}")
+```
+
+## Grafische Ergebnisse
+
+Die Biegelinien beider Lösungen zeigt die folgende Abbildung.
+
+![Biegelinie — Vergleich der analytischen und numerischen Lösung](grafiken/verlauf.png)
+
+Das statische System, gespeichert unter demselben Dateinamen in einem
+anderen Ordner:
+
+![Statisches System des Einfeldträgers](schemata/verlauf.png)
+
+## Quelle vs. Ergebnis
+
+Dieses Dokument entstand aus reinem Markdown. Der folgende Block ist der
+wörtliche Quelltext (in Codeblöcken werden die typografischen Regeln
+absichtlich nicht angewendet):
+
+```markdown
+Er sagte "die Spannweite beträgt 6 m" - d. h. auf S. 12 steht ein
+Querschnitt 40x60 mm, geprüft am 1. 10. 2026 bei 25 °C... Vgl. Nr. 5.
+```
+
+Und so setzt mdprint denselben Text:
+
+Er sagte "die Spannweite beträgt 6 m" - d. h. auf S. 12 steht ein
+Querschnitt 40x60 mm, geprüft am 1. 10. 2026 bei 25 °C... Vgl. Nr. 5.
+
+Der Unterschied liegt in den Details, die über die Lesbarkeit entscheiden:
+Gänsefüßchen, Gedankenstrich, geschützte Leerzeichen in Abkürzung, Datum
+und Einheit, echtes Malzeichen und Auslassungspunkte. Mathematik wird
+gesetzt; Code und Pfade bleiben unberührt.
+
+## Fazit
+
+Die numerische Lösung weicht um weniger als 0,01 % von der analytischen ab,
+was beide Ansätze bestätigt. Die Beziehung
+$w(x) = \frac{q x (L^3 - 2Lx^2 + x^3)}{24 E I}$ eignet sich daher für
+schnelle Nachweise[^nachweis]. Zum Abschluss eine Definition:
+
+Grenzzustand der Gebrauchstauglichkeit
+
+: Zustand, bei dessen Überschreitung das Tragwerk die Nutzungsanforderungen
+  nicht mehr erfüllt, obwohl kein Versagen eintritt.
+
+[^nachweis]: Ein Nachweis nach EN 1990 erfordert Lastkombinationen, die
+    dieser Text der Kürze halber auslässt.
