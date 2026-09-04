@@ -132,9 +132,17 @@ fn fetch_remote(
     Ok(name)
 }
 
+/// Strop velikosti stahovaného obrázku (ochrana paměti a disku).
+const FETCH_LIMIT: u64 = 50 * 1024 * 1024;
+
 fn download(url: &str) -> std::result::Result<Vec<u8>, String> {
     let mut response = ureq::get(url).call().map_err(|e| e.to_string())?;
-    response.body_mut().read_to_vec().map_err(|e| e.to_string())
+    response
+        .body_mut()
+        .with_config()
+        .limit(FETCH_LIMIT)
+        .read_to_vec()
+        .map_err(|e| format!("{e} (limit {} MB)", FETCH_LIMIT / 1024 / 1024))
 }
 
 /// Jméno pro stažený soubor: slug z posledního segmentu cesty URL + 8 znaků

@@ -189,6 +189,15 @@ Pure Rust, no C dependencies — `syntect` runs with the `default-fancy`
 feature (fancy-regex instead of oniguruma), so cross-platform builds need
 nothing beyond a Rust toolchain (MSRV 1.88).
 
+## Security
+
+mdprint is a build tool for **your own documents** and trusts its inputs:
+raw HTML in Markdown passes through to the output, image paths (including
+absolute ones and `..`) are read from your filesystem and copied next to
+the output, and template packs are code-equivalent (their CSS and fonts
+land in every page). Do not run it on untrusted Markdown, configs or
+packs — and see [SECURITY.md](SECURITY.md) for reporting vulnerabilities.
+
 ## License
 
 Licensed under either of [MIT](LICENSE-MIT) or

@@ -59,7 +59,7 @@ pub fn run(cli: &Cli) -> Result<PathBuf> {
         .context("výstupní cesta nemá jméno souboru")?;
     let img_dir_name = format!("img_{stem}");
 
-    typo::apply(root, cfg.lang);
+    typo::apply(root, cfg.lang)?;
     hyphen::Hyphenator::new(cfg.lang)?.apply(root);
     math::MathRenderer::new().render_all(root)?;
     highlight::Highlighter::new().highlight_all(root)?;

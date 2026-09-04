@@ -4,31 +4,33 @@ use std::sync::LazyLock;
 
 use fancy_regex::Regex;
 
+use super::nbsp::{RuleResult, replace_all};
+
 /// ` - ` → `&nbsp;– ` (en dash). Mezera před pomlčkou je nezlomitelná —
 /// pomlčka nesmí začínat řádek (ČSN 01 6910).
-pub fn spaced_dash(text: &str) -> String {
+pub fn spaced_dash(text: &str) -> RuleResult {
     static RE: LazyLock<Regex> =
         LazyLock::new(|| Regex::new(r"(?<=\S)[ \u{a0}][-–][ \u{a0}](?=\S)").expect("vadný regex"));
-    RE.replace_all(text, "\u{a0}– ").into_owned()
+    replace_all(&RE, text, "\u{a0}– ")
 }
 
 /// EN (Chicago): ` - `, ` -- ` i `--` mezi slovy → em dash `—` přisazený
 /// ke slovům (word—word). Spojovník uvnitř slov zůstává.
-pub fn em_dash(text: &str) -> String {
+pub fn em_dash(text: &str) -> RuleResult {
     static SPACED: LazyLock<Regex> = LazyLock::new(|| {
         Regex::new(r"(?<=\S)[ \u{a0}](?:--?|–|—)[ \u{a0}](?=\S)").expect("vadný regex")
     });
     static TIGHT: LazyLock<Regex> =
         LazyLock::new(|| Regex::new(r"(?<=\p{L})--(?=\p{L})").expect("vadný regex"));
-    let s = SPACED.replace_all(text, "\u{2014}").into_owned();
-    TIGHT.replace_all(&s, "\u{2014}").into_owned()
+    let s = replace_all(&SPACED, text, "\u{2014}")?;
+    replace_all(&TIGHT, &s, "\u{2014}")
 }
 
 /// Číselný rozsah `10-20` → `10–20` (en dash bez mezer).
-pub fn number_range(text: &str) -> String {
+pub fn number_range(text: &str) -> RuleResult {
     static RE: LazyLock<Regex> =
         LazyLock::new(|| Regex::new(r"(?<=\d)-(?=\d)").expect("vadný regex"));
-    RE.replace_all(text, "–").into_owned()
+    replace_all(&RE, text, "–")
 }
 
 #[cfg(test)]
@@ -36,9 +38,9 @@ mod tests {
     use super::*;
 
     #[track_caller]
-    fn table(f: fn(&str) -> String, cases: &[(&str, &str)]) {
+    fn table(f: fn(&str) -> RuleResult, cases: &[(&str, &str)]) {
         for (input, expected) in cases {
-            assert_eq!(&f(input), expected, "vstup: {input:?}");
+            assert_eq!(&f(input).unwrap(), expected, "vstup: {input:?}");
         }
     }
 

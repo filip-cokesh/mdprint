@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.3.1] - 2026-09-04
+
+Security-hardening release (no functional changes for well-formed input).
+
+### Fixed
+- Template pack font paths can no longer escape the pack directory
+  (`file = "../…"` is now a build error)
+- A pathological input paragraph exceeding the regex backtracking limit
+  now produces a readable error with the line number instead of a panic
+- `--fetch` downloads are explicitly capped at 50 MB
+
+### Added
+- `SECURITY.md`, a Security section in both READMEs, full BSD license
+  texts for comrak and deunicode in `THIRD-PARTY-LICENSES`, explicit
+  minimal CI permissions
+
 ## [0.3.0] - 2026-09-04
 
 ### Added

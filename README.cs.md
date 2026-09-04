@@ -134,6 +134,14 @@ cargo test
 
 Čistý Rust bez C závislostí (`syntect` s feature `default-fancy`); MSRV 1.88.
 
+## Bezpečnost
+
+mdprint je build nástroj pro **vlastní dokumenty** a svým vstupům věří:
+raw HTML z Markdownu projde do výstupu, obrázkové cesty (i absolutní a `..`)
+se čtou z disku a kopírují k výstupu, template pack je fakticky kód (jeho
+CSS a fonty skončí v každé stránce). Nezpracovávejte nedůvěryhodný Markdown,
+konfiguraci ani packy — hlášení zranitelností viz [SECURITY.md](SECURITY.md).
+
 ## Licence
 
 [MIT](LICENSE-MIT) nebo [Apache-2.0](LICENSE-APACHE), dle vaší volby.

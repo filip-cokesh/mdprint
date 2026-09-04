@@ -76,10 +76,22 @@ impl TemplatePack {
         let css = fs::read_to_string(&css_path)
             .with_context(|| format!("chybí CSS šablony {}", css_path.display()))?;
 
+        let pack_root = dir
+            .canonicalize()
+            .with_context(|| format!("nelze rozložit cestu packu {}", dir.display()))?;
         let mut fonts = Vec::new();
         for decl in manifest.fonts {
             let path = dir.join(&decl.file);
-            let bytes = fs::read(&path)
+            // soubory packu musí ležet uvnitř složky packu (žádné ../ ven)
+            let canonical = path
+                .canonicalize()
+                .with_context(|| format!("chybí font šablony {}", path.display()))?;
+            anyhow::ensure!(
+                canonical.starts_with(&pack_root),
+                "font šablony {} leží mimo složku packu — cesty v pack.toml musí zůstat uvnitř",
+                decl.file
+            );
+            let bytes = fs::read(&canonical)
                 .with_context(|| format!("chybí font šablony {}", path.display()))?;
             fonts.push(PackFont {
                 family: decl.family,
@@ -165,6 +177,23 @@ mod tests {
             format!("{err:#}").contains("chybí manifest šablony"),
             "{err:#}"
         );
+    }
+
+    #[test]
+    fn font_path_cannot_escape_pack_dir() {
+        let dir = tempfile::tempdir().unwrap();
+        let pack = dir.path().join("pack");
+        std::fs::create_dir(&pack).unwrap();
+        std::fs::write(dir.path().join("tajny.woff2"), b"data").unwrap();
+        std::fs::write(
+            pack.join("pack.toml"),
+            "[pack]\nname = \"zly\"\n\n[[fonts]]\nfile = \"../tajny.woff2\"\nfamily = \"X\"\nweight = 400\n",
+        )
+        .unwrap();
+        std::fs::write(pack.join("template.css"), "/* */").unwrap();
+
+        let err = TemplatePack::load(&pack).unwrap_err();
+        assert!(err.to_string().contains("mimo složku packu"), "{err}");
     }
 
     #[test]

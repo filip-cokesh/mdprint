@@ -16,16 +16,18 @@ static SINGLE: LazyLock<Regex> = LazyLock::new(|| {
         .expect("vadný regex")
 });
 
+use super::nbsp::{RuleResult, replace_all};
+
 /// „…“ a vnořené ‚…‘ — znakově shodné pro češtinu (ČSN 01 6910)
 /// i němčinu (DIN 5008, Gänsefüßchen).
-pub fn double_low_quotes(text: &str) -> String {
-    let s = DOUBLE.replace_all(text, "\u{201e}$1\u{201c}").into_owned();
-    SINGLE.replace_all(&s, "\u{201a}$1\u{2018}").into_owned()
+pub fn double_low_quotes(text: &str) -> RuleResult {
+    let s = replace_all(&DOUBLE, text, "\u{201e}$1\u{201c}")?;
+    replace_all(&SINGLE, &s, "\u{201a}$1\u{2018}")
 }
 
-pub fn english_quotes(text: &str) -> String {
-    let s = DOUBLE.replace_all(text, "\u{201c}$1\u{201d}").into_owned();
-    SINGLE.replace_all(&s, "\u{2018}$1\u{2019}").into_owned()
+pub fn english_quotes(text: &str) -> RuleResult {
+    let s = replace_all(&DOUBLE, text, "\u{201c}$1\u{201d}")?;
+    replace_all(&SINGLE, &s, "\u{2018}$1\u{2019}")
 }
 
 #[cfg(test)]
@@ -33,9 +35,9 @@ mod tests {
     use super::*;
 
     #[track_caller]
-    fn table(f: fn(&str) -> String, cases: &[(&str, &str)]) {
+    fn table(f: fn(&str) -> RuleResult, cases: &[(&str, &str)]) {
         for (input, expected) in cases {
-            assert_eq!(&f(input), expected, "vstup: {input:?}");
+            assert_eq!(&f(input).unwrap(), expected, "vstup: {input:?}");
         }
     }
 

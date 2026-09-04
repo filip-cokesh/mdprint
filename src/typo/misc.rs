@@ -4,6 +4,8 @@ use std::sync::LazyLock;
 
 use fancy_regex::Regex;
 
+use super::nbsp::{RuleResult, replace_all};
+
 /// `...` → `…`.
 pub fn ellipsis(text: &str) -> String {
     text.replace("...", "\u{2026}")
@@ -13,35 +15,35 @@ pub fn ellipsis(text: &str) -> String {
 /// `d'Artagnan`). Musí běžet až PO spárování jednoduchých uvozovek,
 /// aby nesežral otvírací `'`. Palcová značka `5"` ani `'` u číslic
 /// se nemění.
-pub fn apostrophe(text: &str) -> String {
+pub fn apostrophe(text: &str) -> RuleResult {
     static RE: LazyLock<Regex> =
         LazyLock::new(|| Regex::new(r"(?<=\p{L})'(?=\p{L})").expect("vadný regex"));
-    RE.replace_all(text, "\u{2019}").into_owned()
+    replace_all(&RE, text, "\u{2019}")
 }
 
 /// `x` mezi čísly → `×`; mezery kolem se stávají nezlomitelnými.
-pub fn multiply_sign(text: &str) -> String {
+pub fn multiply_sign(text: &str) -> RuleResult {
     static SPACED: LazyLock<Regex> =
         LazyLock::new(|| Regex::new(r"(?<=\d)[ \u{a0}]x[ \u{a0}](?=\d)").expect("vadný regex"));
     // `(?<!\b0)` chrání hexadecimální zápisy typu 0x1F
     static TIGHT: LazyLock<Regex> =
         LazyLock::new(|| Regex::new(r"(?<=\d)(?<!\b0)x(?=\d)").expect("vadný regex"));
-    let s = SPACED.replace_all(text, "\u{a0}×\u{a0}").into_owned();
-    TIGHT.replace_all(&s, "×").into_owned()
+    let s = replace_all(&SPACED, text, "\u{a0}×\u{a0}")?;
+    replace_all(&TIGHT, &s, "×")
 }
 
 /// Existující mezery v tisícových skupinách (`1 000 000`) → úzká nezlomitelná
 /// U+202F. Do holých číslic (`10000`) se nezasahuje — mohlo by jít o letopočet
 /// či identifikátor.
-pub fn thousands_groups(text: &str) -> String {
+pub fn thousands_groups(text: &str) -> RuleResult {
     static RE: LazyLock<Regex> =
         LazyLock::new(|| Regex::new(r"(?<=\d) (?=\d{3}(?:\D|$))").expect("vadný regex"));
     // víc průchodů kvůli navazujícím skupinám (1 000 000)
-    let mut s = RE.replace_all(text, "\u{202f}").into_owned();
+    let mut s = replace_all(&RE, text, "\u{202f}")?;
     loop {
-        let next = RE.replace_all(&s, "\u{202f}").into_owned();
+        let next = replace_all(&RE, &s, "\u{202f}")?;
         if next == s {
-            return s;
+            return Ok(s);
         }
         s = next;
     }
@@ -52,16 +54,16 @@ mod tests {
     use super::*;
 
     #[track_caller]
-    fn table(f: fn(&str) -> String, cases: &[(&str, &str)]) {
+    fn table(f: fn(&str) -> RuleResult, cases: &[(&str, &str)]) {
         for (input, expected) in cases {
-            assert_eq!(&f(input), expected, "vstup: {input:?}");
+            assert_eq!(&f(input).unwrap(), expected, "vstup: {input:?}");
         }
     }
 
     #[test]
     fn ellipsis_rule() {
         table(
-            ellipsis,
+            |t| Ok(ellipsis(t)),
             &[
                 ("a tak dále...", "a tak dále…"),
                 ("a... b", "a… b"),

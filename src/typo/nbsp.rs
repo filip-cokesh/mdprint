@@ -6,26 +6,32 @@ use fancy_regex::Regex;
 
 const NBSP: &str = "\u{a0}";
 
+/// Chyba pravidla — prakticky jen `BacktrackLimitExceeded` na patologickém
+/// vstupu; propaguje se jako čitelná chyba místo panicu.
+pub type RuleResult = Result<String, fancy_regex::Error>;
+
 fn re(pattern: &str) -> Regex {
     Regex::new(pattern).expect("vadný regex")
 }
 
-fn replace_all(re: &Regex, text: &str, rep: &str) -> String {
-    re.replace_all(text, rep).into_owned()
+/// `try_replacen` místo `replace_all` — to při překročení backtrack limitu
+/// panikaří (unwrap uvnitř fancy-regexu).
+pub(crate) fn replace_all(re: &Regex, text: &str, rep: &str) -> RuleResult {
+    re.try_replacen(text, 0, rep).map(|c| c.into_owned())
 }
 
 /// Za jednopísmennými předložkami a spojkami k, s, v, z, o, u, a, i
 /// (i velkými) se řádek nesmí zlomit.
-pub fn single_letter_prepositions(text: &str) -> String {
+pub fn single_letter_prepositions(text: &str) -> RuleResult {
     static RE: LazyLock<Regex> =
         LazyLock::new(|| re(r"(?<=^|[\s\u{a0}(\[{„‚>])([ksvzouaiKSVZOUAI]) "));
     // opakovaně kvůli řetězení „a v i…“ (lookbehind na předchozí náhradu)
-    let once = replace_all(&RE, text, &format!("$1{NBSP}"));
+    let once = replace_all(&RE, text, &format!("$1{NBSP}"))?;
     replace_all(&RE, &once, &format!("$1{NBSP}"))
 }
 
 /// Mezi číslem a jednotkou (`10 kg`, `25 °C`, `100 %`).
-pub fn number_unit(text: &str) -> String {
+pub fn number_unit(text: &str) -> RuleResult {
     static RE: LazyLock<Regex> = LazyLock::new(|| {
         re(
             r"(?<=\d) (°C|°F|%|‰|kg|mg|g|t|km|mm|cm|dm|m|ha|hl|ml|dl|l|ms|s|min|h|hod|kHz|MHz|GHz|Hz|kPa|MPa|GPa|Pa|kN|MN|N|kJ|MJ|J|kWh|kW|MW|GW|W|mV|kV|V|mA|A|Kč|€|K|mil\.|mld\.|tis\.)(?=$|[\s\u{a0}.,;:!?)\]}])",
@@ -35,7 +41,7 @@ pub fn number_unit(text: &str) -> String {
 }
 
 /// Za zkratkami (`č.`, `str.`, `tj.`, `např.` …) následovanými dalším výrazem.
-pub fn abbreviations(text: &str) -> String {
+pub fn abbreviations(text: &str) -> RuleResult {
     static RE: LazyLock<Regex> = LazyLock::new(|| {
         re(
             r"(?<=^|[\s\u{a0}(\[{„‚])(č|čís|str|s|tj|tzn|tzv|např|popř|příp|resp|mj|př|kap|obr|tab|roč|odst|písm)\. ",
@@ -45,44 +51,44 @@ pub fn abbreviations(text: &str) -> String {
 }
 
 /// Mezi iniciálou a dalším (velkým) jménem: `J. Novák`, `J. K. Tyl`.
-pub fn initials(text: &str) -> String {
+pub fn initials(text: &str) -> RuleResult {
     static RE: LazyLock<Regex> = LazyLock::new(|| {
         re(r"(?<=^|[\s\u{a0}(„‚])([A-ZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ])\. (?=[A-ZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ])")
     });
-    let once = replace_all(&RE, text, &format!("$1.{NBSP}"));
+    let once = replace_all(&RE, text, &format!("$1.{NBSP}"))?;
     replace_all(&RE, &once, &format!("$1.{NBSP}"))
 }
 
 /// Uvnitř numerického data: `1. 1. 2026` (jazykově neutrální).
-pub fn dates_numeric(text: &str) -> String {
+pub fn dates_numeric(text: &str) -> RuleResult {
     static NUMERIC: LazyLock<Regex> = LazyLock::new(|| re(r"\b(\d{1,2})\. (\d{1,2})\. (\d{4})\b"));
     replace_all(&NUMERIC, text, &format!("$1.{NBSP}$2.{NBSP}$3"))
 }
 
 /// Česká data: numerická + `1. ledna` s názvem měsíce.
-pub fn dates(text: &str) -> String {
+pub fn dates(text: &str) -> RuleResult {
     static MONTH: LazyLock<Regex> = LazyLock::new(|| {
         re(
             r"\b(\d{1,2})\. (ledna|února|března|dubna|května|června|července|srpna|září|října|listopadu|prosince)\b",
         )
     });
-    replace_all(&MONTH, &dates_numeric(text), &format!("$1.{NBSP}$2"))
+    replace_all(&MONTH, &dates_numeric(text)?, &format!("$1.{NBSP}$2"))
 }
 
 /// Německá data: numerická + `1. Januar` s názvem měsíce.
-pub fn dates_de(text: &str) -> String {
+pub fn dates_de(text: &str) -> RuleResult {
     static MONTH: LazyLock<Regex> = LazyLock::new(|| {
         re(
             r"\b(\d{1,2})\. (Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember)\b",
         )
     });
-    replace_all(&MONTH, &dates_numeric(text), &format!("$1.{NBSP}$2"))
+    replace_all(&MONTH, &dates_numeric(text)?, &format!("$1.{NBSP}$2"))
 }
 
 /// Německé zkratky dle DIN 5008: mezera UVNITŘ vícedílných zkratek je
 /// nezlomitelná (`z. B.`, `d. h.`, `i. d. R.` …); zkratky před číslem
 /// (`Nr. 5`, `S. 12`, `Abb. 3`) se váží na číslo.
-pub fn german_abbreviations(text: &str) -> String {
+pub fn german_abbreviations(text: &str) -> RuleResult {
     static MULTI: LazyLock<Regex> = LazyLock::new(|| {
         re(
             r"(?<=^|[\s\u{a0}(\[{„‚])(z\. B\.|d\. h\.|u\. a\.|u\. U\.|o\. Ä\.|u\. Ä\.|z\. T\.|s\. o\.|s\. u\.|i\. d\. R\.|i\. A\.|n\. Chr\.|v\. Chr\.)",
@@ -92,7 +98,8 @@ pub fn german_abbreviations(text: &str) -> String {
     // ruční průchod: v každém nálezu nahradit mezery za NBSP
     let mut bound = String::with_capacity(text.len());
     let mut last = 0;
-    for m in MULTI.find_iter(text).flatten() {
+    for m in MULTI.find_iter(text) {
+        let m = m?;
         bound.push_str(&text[last..m.start()]);
         bound.push_str(&m.as_str().replace(' ', NBSP));
         last = m.end();
@@ -102,7 +109,7 @@ pub fn german_abbreviations(text: &str) -> String {
 }
 
 /// `§ 12` → `§ 12` s nezlomitelnou mezerou.
-pub fn paragraph_sign(text: &str) -> String {
+pub fn paragraph_sign(text: &str) -> RuleResult {
     static RE: LazyLock<Regex> = LazyLock::new(|| re(r"§ (?=\d)"));
     replace_all(&RE, text, &format!("§{NBSP}"))
 }
@@ -112,9 +119,9 @@ mod tests {
     use super::*;
 
     #[track_caller]
-    fn table(f: fn(&str) -> String, cases: &[(&str, &str)]) {
+    fn table(f: fn(&str) -> RuleResult, cases: &[(&str, &str)]) {
         for (input, expected) in cases {
-            assert_eq!(&f(input), expected, "vstup: {input:?}");
+            assert_eq!(&f(input).unwrap(), expected, "vstup: {input:?}");
         }
     }
 
