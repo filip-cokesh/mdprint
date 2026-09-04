@@ -30,8 +30,13 @@ highlight → images** → `render` (vlastní formatter → HTML → minijinja �
   front matter→složka vstupu)
 - `parse.rs` — comrak options, YAML front matter (title/author/date/lang/
   version/template; fallback titulku na první H1)
-- `typo/` — česká typografie výhradně nad `NodeValue::Text` (fancy-regex):
-  `nbsp.rs`, `quotes.rs`, `dash.rs`, `misc.rs`; pořadí pravidel v `typo::transform`
+- `typo/` — typografie cs/en/de výhradně nad `NodeValue::Text` (fancy-regex):
+  `nbsp.rs` (vč. DIN zkratek a de dat), `quotes.rs` (`double_low_quotes` sdílené
+  cs+de, anglické zvlášť), `dash.rs` (spaced en dash cs/de, em dash en),
+  `misc.rs` (apostrof, ×, …, tisíce); tři pipeline v `typo::transform`
+- jazykové defaulty generovaných textů: figure prefix Obr./Fig./Abb.
+  (config.rs), TOC Obsah/Contents/Inhalt, verze/version/Version, datum byline
+  ČSN/beze změny/DIN (render.rs)
 - `hyphen.rs` — U+00AD přes hyphenation (embed_all); slovo ≥ 6 znaků, ≥ 3 před/za,
   nadpisy se nedělí
 - `math.rs` — katex-rs: `NodeValue::Math` → `HtmlInline`; chybný TeX = chyba

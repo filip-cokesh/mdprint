@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] - 2026-09-04
+
+### Added
+- **German language support** (`--lang de`): DIN 5008 typography — „Gänsefüßchen“
+  quotes, protected spaces inside multi-part abbreviations (z. B., d. h.,
+  i. d. R.), references bound to numbers (Nr. 5, S. 12), German dates
+  (numeric and month names), Gedankenstrich, narrow no-break thousands
+  groups, German hyphenation patterns, DIN date in the byline (DD.MM.YYYY),
+  localized generated texts (Inhalt, Abb., Version)
+- **Full English typography**: em dashes (` - `, ` -- `, `--` → `—`,
+  Chicago style), number ranges with en dash, multiplication sign,
+  number–unit binding; localized defaults (Contents, Fig.)
+- Typographic apostrophe (`don't`, `geht's`, `d'Artagnan` → `’`) in all
+  languages
+- Language-aware default figure prefix (Obr. / Fig. / Abb.) — explicit
+  `[figures] prefix` still wins
+- English and German showcase documents (live demos)
+
+### Changed
+- Czech mode now also converts intra-word apostrophes to `’`
+
 ## [0.2.1] - 2026-09-02
 
 First release published to crates.io.

@@ -21,6 +21,7 @@ impl Hyphenator {
         let language = match lang {
             Lang::Cs => Language::Czech,
             Lang::En => Language::EnglishUS,
+            Lang::De => Language::German1996,
         };
         let dict = Standard::from_embedded(language)
             .with_context(|| format!("embedovaný slovník dělení pro {language:?} chybí"))?;

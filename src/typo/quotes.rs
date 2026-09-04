@@ -16,7 +16,9 @@ static SINGLE: LazyLock<Regex> = LazyLock::new(|| {
         .expect("vadný regex")
 });
 
-pub fn czech_quotes(text: &str) -> String {
+/// „…“ a vnořené ‚…‘ — znakově shodné pro češtinu (ČSN 01 6910)
+/// i němčinu (DIN 5008, Gänsefüßchen).
+pub fn double_low_quotes(text: &str) -> String {
     let s = DOUBLE.replace_all(text, "\u{201e}$1\u{201c}").into_owned();
     SINGLE.replace_all(&s, "\u{201a}$1\u{2018}").into_owned()
 }
@@ -38,9 +40,9 @@ mod tests {
     }
 
     #[test]
-    fn czech() {
+    fn czech_and_german() {
         table(
-            czech_quotes,
+            double_low_quotes,
             &[
                 ("řekl \"ahoj\" a šel", "řekl „ahoj“ a šel"),
                 ("\"Celá věta.\"", "„Celá věta.“"),
@@ -54,6 +56,12 @@ mod tests {
                 ("d'Artagnan", "d'Artagnan"),
                 // palce/metry — nepárová uvozovka zůstává
                 ("deska 5\" široká", "deska 5\" široká"),
+                // německé věty — tatáž pravidla (DIN 5008)
+                ("er sagte \"Hallo\" dazu", "er sagte „Hallo“ dazu"),
+                (
+                    "\"Zitat mit 'Einschub' drin\"",
+                    "„Zitat mit ‚Einschub‘ drin“",
+                ),
             ],
         );
     }

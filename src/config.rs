@@ -127,7 +127,15 @@ impl Config {
             lang,
             paper_size: paper.size.unwrap_or_else(|| "A4".into()),
             paper_margin: paper.margin.unwrap_or_else(|| "2.5cm 2cm".into()),
-            figure_prefix: figures.prefix.unwrap_or_else(|| "Obr.".into()),
+            // default popisku figur podle jazyka; [figures] prefix má přednost
+            figure_prefix: figures.prefix.unwrap_or_else(|| {
+                match lang {
+                    Lang::Cs => "Obr.",
+                    Lang::En => "Fig.",
+                    Lang::De => "Abb.",
+                }
+                .into()
+            }),
             figure_numbering: figures.numbering.unwrap_or(true),
             font_serif: fonts.serif.unwrap_or_else(|| "Libertinus Serif".into()),
             font_sans: fonts.sans.unwrap_or_else(|| "Libertinus Sans".into()),

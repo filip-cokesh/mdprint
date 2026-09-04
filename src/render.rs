@@ -119,6 +119,7 @@ pub fn page_html(
     let lang = match cfg.lang {
         Lang::Cs => "cs",
         Lang::En => "en",
+        Lang::De => "de",
     };
     let author = front_matter.and_then(|fm| fm.author.clone());
     let date = front_matter
@@ -128,6 +129,7 @@ pub fn page_html(
         let label = match cfg.lang {
             Lang::Cs => "verze",
             Lang::En => "version",
+            Lang::De => "Version",
         };
         format!("{label} {v}")
     });
@@ -242,6 +244,7 @@ pub fn build_toc<'a>(root: &'a AstNode<'a>, lang: Lang) -> Option<String> {
     let title = match lang {
         Lang::Cs => "Obsah",
         Lang::En => "Contents",
+        Lang::De => "Inhalt",
     };
     let mut html = format!("<nav class=\"toc\">\n<h2 class=\"toc-title\">{title}</h2>\n");
     let mut depth = 0u8;
@@ -279,10 +282,11 @@ pub fn build_toc<'a>(root: &'a AstNode<'a>, lang: Lang) -> Option<String> {
     Some(html)
 }
 
-/// ISO datum `RRRR-MM-DD` → české `D. M. RRRR` (s nezlomitelnými mezerami);
-/// cokoli jiného projde beze změny. Pro `en` se datum nechává, jak je zapsané.
+/// ISO datum `RRRR-MM-DD` → jazyková sazba: cs `D. M. RRRR` (s nezlomitelnými
+/// mezerami dle ČSN 01 6910), de `DD.MM.RRRR` (DIN 5008); cokoli jiného,
+/// a celé `en`, projde beze změny.
 fn format_date(date: &str, lang: Lang) -> String {
-    if lang != Lang::Cs {
+    if lang == Lang::En {
         return date.to_string();
     }
     let parts: Vec<&str> = date.split('-').collect();
@@ -292,8 +296,11 @@ fn format_date(date: &str, lang: Lang) -> String {
     match (y.parse::<u32>(), m.parse::<u32>(), d.parse::<u32>()) {
         (Ok(y), Ok(m), Ok(d)) if (1..=12).contains(&m) && (1..=31).contains(&d) => {
             let mut out = String::new();
-            // U+00A0 mezi členy data dle ČSN 01 6910
-            let _ = write!(out, "{d}.\u{a0}{m}.\u{a0}{y}");
+            let _ = match lang {
+                Lang::Cs => write!(out, "{d}.\u{a0}{m}.\u{a0}{y}"),
+                Lang::De => write!(out, "{d:02}.{m:02}.{y}"),
+                Lang::En => unreachable!(),
+            };
             out
         }
         _ => date.to_string(),

@@ -13,11 +13,13 @@ use comrak::nodes::{AstNode, NodeValue};
 use crate::cli::Lang;
 
 /// Pořadí je záměrné: uvozovky dřív než pomlčky (aby `"a" - "b"` nezmátlo
-/// párování), tisícové skupiny až po jednotkách (obě pracují s číslicemi).
+/// párování), apostrof až po spárování jednoduchých uvozovek, tisícové
+/// skupiny až po jednotkách (obě pracují s číslicemi).
 pub fn transform(text: &str, lang: Lang) -> String {
     match lang {
         Lang::Cs => {
-            let s = quotes::czech_quotes(text);
+            let s = quotes::double_low_quotes(text);
+            let s = misc::apostrophe(&s);
             let s = misc::ellipsis(&s);
             let s = dash::spaced_dash(&s);
             let s = dash::number_range(&s);
@@ -32,7 +34,28 @@ pub fn transform(text: &str, lang: Lang) -> String {
         }
         Lang::En => {
             let s = quotes::english_quotes(text);
-            misc::ellipsis(&s)
+            let s = misc::apostrophe(&s);
+            let s = misc::ellipsis(&s);
+            let s = dash::em_dash(&s);
+            let s = dash::number_range(&s);
+            let s = misc::multiply_sign(&s);
+            // číslo–jednotka je SI konvence, ne čeština; tisícové skupiny
+            // angličtina píše čárkami — U+202F pravidlo se nepoužije
+            nbsp::number_unit(&s)
+        }
+        Lang::De => {
+            let s = quotes::double_low_quotes(text);
+            let s = misc::apostrophe(&s);
+            let s = misc::ellipsis(&s);
+            // Gedankenstrich = spaced en dash, jako čeština
+            let s = dash::spaced_dash(&s);
+            let s = dash::number_range(&s);
+            let s = misc::multiply_sign(&s);
+            let s = nbsp::number_unit(&s);
+            let s = nbsp::german_abbreviations(&s);
+            let s = nbsp::dates_de(&s);
+            let s = nbsp::paragraph_sign(&s);
+            misc::thousands_groups(&s)
         }
     }
 }
@@ -85,10 +108,38 @@ mod tests {
     }
 
     #[test]
-    fn english_gets_english_quotes_only() {
+    fn english_pipeline() {
         assert_eq!(
             transform("He said \"hello\" to k friend...", Lang::En),
-            "He said \u{201c}hello\u{201d} to k friend\u{2026}"
+            "He said \u{201c}hello\u{201d} to k friend\u{2026}",
+            "žádná česká pravidla (k se neváže)"
+        );
+        assert_eq!(
+            transform("don't stop - see pages 10-20, load 10 kN", Lang::En),
+            "don\u{2019}t stop\u{2014}see pages 10\u{2013}20, load 10\u{a0}kN"
+        );
+        assert_eq!(
+            transform("1 000 000 cycles", Lang::En),
+            "1 000 000 cycles",
+            "tisícové U+202F se v EN nepoužívá"
+        );
+    }
+
+    #[test]
+    fn german_pipeline() {
+        assert_eq!(
+            transform(
+                "Er sagte \"Hallo\" - z. B. am 1. 1. 2026, siehe Nr. 5.",
+                Lang::De
+            ),
+            "Er sagte „Hallo“\u{a0}– z.\u{a0}B. am 1.\u{a0}1.\u{a0}2026, siehe Nr.\u{a0}5."
+        );
+        assert_eq!(
+            transform(
+                "Die Last beträgt 10 kN, geht's um 1 000 000 Zyklen...",
+                Lang::De
+            ),
+            "Die Last beträgt 10\u{a0}kN, geht\u{2019}s um 1\u{202f}000\u{202f}000 Zyklen\u{2026}"
         );
     }
 }

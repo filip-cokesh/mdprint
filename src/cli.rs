@@ -41,4 +41,5 @@ pub struct Cli {
 pub enum Lang {
     Cs,
     En,
+    De,
 }

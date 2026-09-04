@@ -1,6 +1,6 @@
 [package]
 name = "mdprint"
-version = "0.2.1"
+version = "0.3.0"
 edition = "2024"
 rust-version = "1.88"
 description = "Markdown → print-quality self-contained HTML. One static binary with Czech typography, KaTeX math and syntax highlighting."

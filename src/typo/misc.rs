@@ -9,6 +9,16 @@ pub fn ellipsis(text: &str) -> String {
     text.replace("...", "\u{2026}")
 }
 
+/// Apostrof mezi písmeny → typografický U+2019 (`don't`, `geht's`,
+/// `d'Artagnan`). Musí běžet až PO spárování jednoduchých uvozovek,
+/// aby nesežral otvírací `'`. Palcová značka `5"` ani `'` u číslic
+/// se nemění.
+pub fn apostrophe(text: &str) -> String {
+    static RE: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"(?<=\p{L})'(?=\p{L})").expect("vadný regex"));
+    RE.replace_all(text, "\u{2019}").into_owned()
+}
+
 /// `x` mezi čísly → `×`; mezery kolem se stávají nezlomitelnými.
 pub fn multiply_sign(text: &str) -> String {
     static SPACED: LazyLock<Regex> =
@@ -56,6 +66,23 @@ mod tests {
                 ("a tak dále...", "a tak dále…"),
                 ("a... b", "a… b"),
                 ("beze změny.", "beze změny."),
+            ],
+        );
+    }
+
+    #[test]
+    fn apostrophes() {
+        table(
+            apostrophe,
+            &[
+                ("don't stop", "don\u{2019}t stop"),
+                ("John's book", "John\u{2019}s book"),
+                ("geht's gut", "geht\u{2019}s gut"),
+                ("d'Artagnan", "d\u{2019}Artagnan"),
+                ("rock'n'roll", "rock\u{2019}n\u{2019}roll"),
+                // palcová značka a osamocený apostrof zůstávají
+                ("deska 5' dlouhá", "deska 5' dlouhá"),
+                ("'quoted'", "'quoted'"),
             ],
         );
     }

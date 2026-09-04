@@ -12,6 +12,18 @@ pub fn spaced_dash(text: &str) -> String {
     RE.replace_all(text, "\u{a0}– ").into_owned()
 }
 
+/// EN (Chicago): ` - `, ` -- ` i `--` mezi slovy → em dash `—` přisazený
+/// ke slovům (word—word). Spojovník uvnitř slov zůstává.
+pub fn em_dash(text: &str) -> String {
+    static SPACED: LazyLock<Regex> = LazyLock::new(|| {
+        Regex::new(r"(?<=\S)[ \u{a0}](?:--?|–|—)[ \u{a0}](?=\S)").expect("vadný regex")
+    });
+    static TIGHT: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"(?<=\p{L})--(?=\p{L})").expect("vadný regex"));
+    let s = SPACED.replace_all(text, "\u{2014}").into_owned();
+    TIGHT.replace_all(&s, "\u{2014}").into_owned()
+}
+
 /// Číselný rozsah `10-20` → `10–20` (en dash bez mezer).
 pub fn number_range(text: &str) -> String {
     static RE: LazyLock<Regex> =
@@ -42,6 +54,22 @@ mod tests {
                 // spojovník uvnitř slova se nemění
                 ("modro-zelený", "modro-zelený"),
                 ("je-li", "je-li"),
+            ],
+        );
+    }
+
+    #[test]
+    fn em_dashes() {
+        table(
+            em_dash,
+            &[
+                ("word - word", "word\u{2014}word"),
+                ("word -- word", "word\u{2014}word"),
+                ("word--word", "word\u{2014}word"),
+                ("wait – no", "wait\u{2014}no"),
+                // spojovník uvnitř slova zůstává
+                ("well-known", "well-known"),
+                ("state-of-the-art", "state-of-the-art"),
             ],
         );
     }

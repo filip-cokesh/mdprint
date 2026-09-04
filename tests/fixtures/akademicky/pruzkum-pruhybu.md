@@ -6,6 +6,8 @@ version: "1.1"
 lang: cs
 ---
 
+<nav style="text-align:right;font-size:0.85em"><a href="index.html">Čeština</a> · <a href="en.html">English</a> · <a href="de.html">Deutsch</a></nav>
+
 ## Úvod
 
 Tato studie se zabývá průhybem prostě podepřeného nosníku o rozpětí $L$,

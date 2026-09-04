@@ -53,16 +53,52 @@ pub fn initials(text: &str) -> String {
     replace_all(&RE, &once, &format!("$1.{NBSP}"))
 }
 
-/// Uvnitř data: `1. 1. 2026` i `1. ledna`.
-pub fn dates(text: &str) -> String {
+/// Uvnitř numerického data: `1. 1. 2026` (jazykově neutrální).
+pub fn dates_numeric(text: &str) -> String {
     static NUMERIC: LazyLock<Regex> = LazyLock::new(|| re(r"\b(\d{1,2})\. (\d{1,2})\. (\d{4})\b"));
+    replace_all(&NUMERIC, text, &format!("$1.{NBSP}$2.{NBSP}$3"))
+}
+
+/// Česká data: numerická + `1. ledna` s názvem měsíce.
+pub fn dates(text: &str) -> String {
     static MONTH: LazyLock<Regex> = LazyLock::new(|| {
         re(
             r"\b(\d{1,2})\. (ledna|února|března|dubna|května|června|července|srpna|září|října|listopadu|prosince)\b",
         )
     });
-    let s = replace_all(&NUMERIC, text, &format!("$1.{NBSP}$2.{NBSP}$3"));
-    replace_all(&MONTH, &s, &format!("$1.{NBSP}$2"))
+    replace_all(&MONTH, &dates_numeric(text), &format!("$1.{NBSP}$2"))
+}
+
+/// Německá data: numerická + `1. Januar` s názvem měsíce.
+pub fn dates_de(text: &str) -> String {
+    static MONTH: LazyLock<Regex> = LazyLock::new(|| {
+        re(
+            r"\b(\d{1,2})\. (Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember)\b",
+        )
+    });
+    replace_all(&MONTH, &dates_numeric(text), &format!("$1.{NBSP}$2"))
+}
+
+/// Německé zkratky dle DIN 5008: mezera UVNITŘ vícedílných zkratek je
+/// nezlomitelná (`z. B.`, `d. h.`, `i. d. R.` …); zkratky před číslem
+/// (`Nr. 5`, `S. 12`, `Abb. 3`) se váží na číslo.
+pub fn german_abbreviations(text: &str) -> String {
+    static MULTI: LazyLock<Regex> = LazyLock::new(|| {
+        re(
+            r"(?<=^|[\s\u{a0}(\[{„‚])(z\. B\.|d\. h\.|u\. a\.|u\. U\.|o\. Ä\.|u\. Ä\.|z\. T\.|s\. o\.|s\. u\.|i\. d\. R\.|i\. A\.|n\. Chr\.|v\. Chr\.)",
+        )
+    });
+    static BEFORE_NUM: LazyLock<Regex> = LazyLock::new(|| re(r"\b(Nr|S|Abb|Tab|Kap|Bd)\. (?=\d)"));
+    // ruční průchod: v každém nálezu nahradit mezery za NBSP
+    let mut bound = String::with_capacity(text.len());
+    let mut last = 0;
+    for m in MULTI.find_iter(text).flatten() {
+        bound.push_str(&text[last..m.start()]);
+        bound.push_str(&m.as_str().replace(' ', NBSP));
+        last = m.end();
+    }
+    bound.push_str(&text[last..]);
+    replace_all(&BEFORE_NUM, &bound, &format!("$1.{NBSP}"))
 }
 
 /// `§ 12` → `§ 12` s nezlomitelnou mezerou.
@@ -151,6 +187,30 @@ mod tests {
                 ("5. července", "5.\u{a0}července"),
                 // řadová číslovka bez data se nemění
                 ("5. kapitola", "5. kapitola"),
+            ],
+        );
+    }
+
+    #[test]
+    fn german_dates_and_abbrevs() {
+        table(
+            dates_de,
+            &[
+                ("am 1. 1. 2026", "am 1.\u{a0}1.\u{a0}2026"),
+                ("am 3. Oktober 1990", "am 3.\u{a0}Oktober 1990"),
+                ("das 5. Kapitel", "das 5. Kapitel"),
+            ],
+        );
+        table(
+            german_abbreviations,
+            &[
+                ("z. B. hier", "z.\u{a0}B. hier"),
+                ("d. h. sofort", "d.\u{a0}h. sofort"),
+                ("i. d. R. gilt", "i.\u{a0}d.\u{a0}R. gilt"),
+                ("siehe Nr. 5 und S. 12", "siehe Nr.\u{a0}5 und S.\u{a0}12"),
+                ("vgl. Abb. 3 und Tab. 2", "vgl. Abb.\u{a0}3 und Tab.\u{a0}2"),
+                // konec věty tečkou se nemění
+                ("Haus. Der", "Haus. Der"),
             ],
         );
     }

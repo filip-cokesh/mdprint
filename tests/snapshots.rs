@@ -6,7 +6,7 @@ use std::path::Path;
 
 use mdprint::cli::Cli;
 
-fn build_fixture(name: &str, md_file: &str, template: Option<String>) -> String {
+fn build_fixture(name: &str, md_file: &str, template: Option<String>, toc: bool) -> String {
     let src = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures")
         .join(name);
@@ -17,7 +17,7 @@ fn build_fixture(name: &str, md_file: &str, template: Option<String>) -> String 
         input: dir.path().join(md_file),
         output: None,
         lang: None,
-        toc: false,
+        toc,
         fetch: false,
         config: None,
         template,
@@ -73,7 +73,7 @@ fn normalize(html: &str) -> String {
 
 #[test]
 fn akademicky_dokument() {
-    let html = build_fixture("akademicky", "pruzkum-pruhybu.md", None);
+    let html = build_fixture("akademicky", "pruzkum-pruhybu.md", None, false);
     insta::assert_snapshot!("akademicky", html);
 }
 
@@ -83,7 +83,7 @@ fn akademicky_dokument_pres_pack() {
         .join("tests/fixtures/pack-demo")
         .to_string_lossy()
         .into_owned();
-    let html = build_fixture("akademicky", "pruzkum-pruhybu.md", Some(pack));
+    let html = build_fixture("akademicky", "pruzkum-pruhybu.md", Some(pack), false);
     assert!(html.contains("brand-header"));
     assert!(html.contains("Demo s.r.o."));
     // data URI log jsou obrovské — pro snapshot je zkrátíme
@@ -92,6 +92,27 @@ fn akademicky_dokument_pres_pack() {
         .replace_all(&html, "data:image/png;base64,…")
         .into_owned();
     insta::assert_snapshot!("akademicky-pack", html);
+}
+
+#[test]
+fn anglicky_showcase() {
+    let html = build_fixture("english", "showcase-en.md", None, true);
+    assert!(html.contains("<html lang=\"en\">"));
+    assert!(html.contains(">Contents</h2>"));
+    assert!(html.contains("don\u{2019}t"));
+    assert!(html.contains("\u{2014}"), "em dash chybí");
+    insta::assert_snapshot!("english", html);
+}
+
+#[test]
+fn nemecky_showcase() {
+    let html = build_fixture("german", "showcase-de.md", None, true);
+    assert!(html.contains("<html lang=\"de\">"));
+    assert!(html.contains(">Inhalt</h2>"));
+    assert!(html.contains("z.\u{a0}B."));
+    assert!(html.contains("Abb. 1:"), "Abb. popisek figury chybí");
+    assert!(html.contains("04.09.2026"), "DIN datum v byline chybí");
+    insta::assert_snapshot!("german", html);
 }
 
 #[test]

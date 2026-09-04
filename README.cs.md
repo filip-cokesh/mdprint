@@ -8,9 +8,12 @@
 
 *English documentation: [README.md](README.md)*
 
-**[Živé demo](https://filip-cokesh.github.io/mdprint/)** — skutečný český
-akademický dokument z `mdprint --toc`: matematika, tabulky, kód, obrázky,
-typografie, tmavý režim. Zkuste i tisk (Ctrl+P).
+**Živá dema** — skutečné dokumenty z `mdprint --toc` s matematikou,
+tabulkami, kódem, obrázky, typografií a tmavým režimem:
+[čeština](https://filip-cokesh.github.io/mdprint/) ·
+[English](https://filip-cokesh.github.io/mdprint/en.html) ·
+[Deutsch](https://filip-cokesh.github.io/mdprint/de.html).
+Zkuste i tisk (Ctrl+P).
 
 ## Proč
 
@@ -48,11 +51,14 @@ z Chromu, nebo rovnou zveřejníš.
 - **KaTeX matematika** při buildu (`$…$`, `$$…$$`) — nativní Rust port;
   chybný TeX = chyba buildu s číslem řádku
 - **zvýraznění kódu** — statické `<span>` (syntect), světlé téma pro tisk
-- **česká typografie** nad AST (viz tabulka v [README.md](README.md#czech-typography)):
-  nezlomitelné mezery (předložky, číslo–jednotka, zkratky, iniciály, data, §),
-  uvozovky „…“ ‚…‘, pomlčky a rozsahy, `…`, `×`, tisíce úzkou mezerou;
-  kódu, matematiky a URL se nedotýká
-- **dělení slov** měkkými rozdělovníky (vzory cs/en embedované)
+- **typografie pro češtinu, němčinu i angličtinu** nad AST (viz tabulky
+  v [README.md](README.md#typography)): čeština dle ČSN 01 6910 (nezlomitelné
+  mezery, uvozovky „…“ ‚…‘, pomlčky, rozsahy, `…`, `×`, tisíce úzkou mezerou),
+  němčina dle DIN 5008 (z. B. s vázanými mezerami, Nr./S./Abb. k číslu,
+  Gedankenstrich, DIN datum, Inhalt/Abb.), angličtina s em dash dle Chicago,
+  “uvozovkami” a apostrofy (`don't` → `don’t`); kódu, matematiky a URL se
+  nedotýká
+- **dělení slov** měkkými rozdělovníky (vzory cs/de/en embedované)
 - **tiskové CSS** — A4, orphans/widows, opakování hlavičky tabulky přes
   stránky, nedělené figury, zalamování dlouhých řádků kódu s visutou
   indentací, URL za externími odkazy

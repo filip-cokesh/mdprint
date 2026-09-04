@@ -12,9 +12,12 @@
 
 *Česká verze dokumentace: [README.cs.md](README.cs.md)*
 
-**[Live demo](https://filip-cokesh.github.io/mdprint/)** — a real Czech
-academic document produced by `mdprint --toc`: math, tables, code, figures,
-typography, dark mode. Try printing it (Ctrl+P).
+**Live demos** — real documents produced by `mdprint --toc`, with math,
+tables, code, figures, typography and dark mode:
+[čeština](https://filip-cokesh.github.io/mdprint/) ·
+[English](https://filip-cokesh.github.io/mdprint/en.html) ·
+[Deutsch](https://filip-cokesh.github.io/mdprint/de.html).
+Try printing them (Ctrl+P).
 
 ## Why
 
@@ -54,9 +57,9 @@ print it from Chrome, or publish it as-is.
   port — invalid TeX fails the build with a line number
 - **Syntax highlighting** — static `<span>`s (syntect), light theme suited
   for print
-- **Czech typography** applied on the AST — see below
-- **Hyphenation** with embedded Czech and English patterns (soft hyphens,
-  words ≥ 6 chars, ≥ 3 chars around each break, headings exempt)
+- **Czech, German and English typography** applied on the AST — see below
+- **Hyphenation** with embedded Czech, German and English patterns (soft
+  hyphens, words ≥ 6 chars, ≥ 3 chars around each break, headings exempt)
 - **Print CSS** — A4 page setup, orphans/widows control, table headers
   repeated across pages, unbreakable figures and table rows, long code lines
   wrapped with hanging indent, URLs printed after external links
@@ -69,11 +72,15 @@ print it from Chrome, or publish it as-is.
 - **Template packs** — external branding (logo header, colors, fonts,
   company footer) loaded from a folder at run time, no recompilation
 
-## Czech typography
+## Typography
 
-The distinguishing feature. Rules follow ČSN 01 6910 and Pecina's *Knihy
-a typografie*, are applied only to text nodes (never code, math or URLs),
-and each rule is a separately tested function.
+The distinguishing feature. Rules are applied only to text nodes (never
+code, math or URLs), each rule is a separately tested function, and the
+rule set follows the document language (`--lang`, front matter `lang:`).
+
+### Czech (`--lang cs`, default)
+
+Rules follow ČSN 01 6910 and Pecina's *Knihy a typografie*.
 
 | Rule | Before | After |
 |---|---|---|
@@ -88,9 +95,25 @@ and each rule is a separately tested function.
 | Ellipsis | `atd...` | `atd…` |
 | Multiplication | `2 x 3`, `40x60` | `2 × 3`, `40×60` (hex `0x1F` untouched) |
 | Thousands groups | `1 000 000` | narrow NBSP U+202F |
+| Apostrophes | `d'Artagnan` | `d’Artagnan` |
 
-With `--lang en` the Czech rules are disabled and English quotes and
-hyphenation patterns are used instead.
+### German (`--lang de`)
+
+Rules follow DIN 5008: „Gänsefüßchen“ quotes (‚nested‘ too), protected
+spaces inside multi-part abbreviations (`z. B.`, `d. h.`, `i. d. R.`),
+references bound to their numbers (`Nr. 5`, `S. 12`, `Abb. 3`),
+Gedankenstrich ( – with a protected space before it), en-dash ranges,
+`×`, number–unit binding, dates (`1. 1. 2026`, `3. Oktober`), narrow
+no-break thousands groups, apostrophes (`geht's` → `geht’s`). Generated
+texts are localized (Inhalt, Abb., Version) and the byline date follows
+DIN (`04.09.2026`).
+
+### English (`--lang en`)
+
+Chicago-style em dashes (` - `, ` -- `, `--` → `—` closed up), “curly”
+quotes with ‘nested’ ones, apostrophes in contractions (`don't` → `don’t`),
+en-dash number ranges, `×`, number–unit binding (SI), ellipsis. Thousands
+keep their commas; generated texts use Contents and Fig.
 
 ## Configuration
 
@@ -98,7 +121,7 @@ Optional `mdprint.toml` next to the input file (or `--config <path>`).
 CLI flags override it; every key is optional.
 
 ```toml
-lang = "cs"                     # cs | en; front matter `lang:` overrides this
+lang = "cs"                     # cs | en | de; front matter `lang:` overrides this
 template = "../my-pack"         # "default" or path to a template pack folder
 
 [paper]
@@ -143,7 +166,7 @@ Arguments:
 
 Options:
   -o, --output <OUTPUT>      Output HTML file (default: next to input, .html)
-      --lang <LANG>          Document language [possible values: cs, en]
+      --lang <LANG>          Document language [possible values: cs, en, de]
       --toc                  Generate a table of contents (headings 1-3)
       --fetch                Download remote images (with a disk cache)
       --config <CONFIG>      Config path (default: mdprint.toml next to input)
