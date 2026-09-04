@@ -16,6 +16,7 @@ exclude = [
     "assets/logo/*.png",
     ".github/*",
     "CLAUDE.md",
+    "docs/*",
 ]
 
 [dependencies]
