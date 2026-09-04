@@ -37,7 +37,7 @@ expression: html
 </ol>
 </nav>
 
-<nav style="font-size:0.85em;text-align:right;"><a href="index.html">Čeština</a> · <a href="en.html">English</a> · <a href="de.html">Deutsch</a></nav>
+<nav style="font-size:0.85em;text-align:right;"><a href="index.html" target="_top">Čeština</a> · <a href="en.html" target="_top">English</a> · <a href="de.html" target="_top">Deutsch</a></nav>
 <h2 id="introduction">Introduction<a aria-label="Link to heading 'Introduction'" class="anchor" data-heading-content="Introduction" href="#introduction"></a></h2>
 <p>This study deals with the deflec­tion of a sim­ply sup­ported beam of span <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi></mrow><annotation encoding="application/x-tex">L</annotation></semantics></math></span><span aria-hidden="true" class="katex-html"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">L</span></span></span></span>
 car­ry­ing a uni­formly dis­trib­uted load <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>q</mi></mrow><annotation encoding="application/x-tex">q</annotation></semantics></math></span><span aria-hidden="true" class="katex-html"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">q</span></span></span></span>. The aim is to com­pare the closed

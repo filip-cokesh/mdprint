@@ -6,7 +6,7 @@ version: "1.2"
 lang: de
 ---
 
-<nav style="text-align:right;font-size:0.85em"><a href="index.html">Čeština</a> · <a href="en.html">English</a> · <a href="de.html">Deutsch</a></nav>
+<nav style="text-align:right;font-size:0.85em"><a href="index.html" target="_top">Čeština</a> · <a href="en.html" target="_top">English</a> · <a href="de.html" target="_top">Deutsch</a></nav>
 
 ## Einleitung
 

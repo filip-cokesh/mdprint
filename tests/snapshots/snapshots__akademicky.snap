@@ -17,9 +17,9 @@ expression: html
 <article class="doc">
 <header class="doc-header">
 <h1 class="doc-title">Průhyb prostě podepřeného nosníku za rovnoměrného zatížení</h1>
-<p class="doc-byline">Filip Hokeš · 3. 9. 2026 · verze 1.1</p>
+<p class="doc-byline">Filip Hokeš · 4. 9. 2026 · verze 1.2</p>
 </header>
-<nav style="font-size:0.85em;text-align:right;"><a href="index.html">Čeština</a> · <a href="en.html">English</a> · <a href="de.html">Deutsch</a></nav>
+<nav style="font-size:0.85em;text-align:right;"><a href="index.html" target="_top">Čeština</a> · <a href="en.html" target="_top">English</a> · <a href="de.html" target="_top">Deutsch</a></nav>
 <h2 id="úvod">Úvod<a aria-label="Link to heading 'Úvod'" class="anchor" data-heading-content="Úvod" href="#úvod"></a></h2>
 <p>Tato stu­die se zabývá prů­hy­bem prostě pode­pře­ného nos­níku o rozpětí <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi></mrow><annotation encoding="application/x-tex">L</annotation></semantics></math></span><span aria-hidden="true" class="katex-html"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">L</span></span></span></span>,
 zatí­že­ného rov­no­měr­ným spo­ji­tým zatí­že­ním <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>q</mi></mrow><annotation encoding="application/x-tex">q</annotation></semantics></math></span><span aria-hidden="true" class="katex-html"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">q</span></span></span></span>. Cílem je porov­nat uza­vřené

@@ -37,7 +37,7 @@ expression: html
 </ol>
 </nav>
 
-<nav style="font-size:0.85em;text-align:right;"><a href="index.html">Čeština</a> · <a href="en.html">English</a> · <a href="de.html">Deutsch</a></nav>
+<nav style="font-size:0.85em;text-align:right;"><a href="index.html" target="_top">Čeština</a> · <a href="en.html" target="_top">English</a> · <a href="de.html" target="_top">Deutsch</a></nav>
 <h2 id="einleitung">Einleitung<a aria-label="Link to heading 'Einleitung'" class="anchor" data-heading-content="Einleitung" href="#einleitung"></a></h2>
 <p>Diese Stu­die behan­delt die Durch­bie­gung eines Ein­feld­trä­gers mit der
 Spann­weite <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>L</mi></mrow><annotation encoding="application/x-tex">L</annotation></semantics></math></span><span aria-hidden="true" class="katex-html"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">L</span></span></span></span> unter einer Gleich­stre­cken­last <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>q</mi></mrow><annotation encoding="application/x-tex">q</annotation></semantics></math></span><span aria-hidden="true" class="katex-html"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">q</span></span></span></span>. Ziel ist es, die
