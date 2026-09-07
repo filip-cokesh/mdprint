@@ -19,6 +19,22 @@ $$\Delta l = \frac{N_1 l_1}{E A_1} + \frac{N_2 l_2}{E A_2} + \frac{N_3 l_3}{E A_
 
 $$w_{\max} = \frac{5\,q\,L^4}{384\,E\,I}$$
 
+## Vysoké glyfy — integrály (nesmí se oříznout)
+
+Vztahy mezi vnitřními silami a napětími:
+
+$$N = \int_A \sigma_x\,\mathrm{d}A$$
+
+$$V_y = \int_A \tau_{xy}\,\mathrm{d}A$$
+
+$$V_z = \int_A \tau_{xz}\,\mathrm{d}A$$
+
+$$M_x = \int_A (\tau_{xz}\,y - \tau_{xy}\,z)\,\mathrm{d}A$$
+
+$$M_y = \int_A \sigma_x\,z\,\mathrm{d}A$$
+
+$$M_z = -\int_A \sigma_x\,y\,\mathrm{d}A$$
+
 ## Dlouhý inline vzorec
 
 Pro kontrolu lze vyčíslit i největší napětí, které vzniká v nejnižším

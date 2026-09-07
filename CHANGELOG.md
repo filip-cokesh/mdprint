@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.3.3] - 2026-09-07
+
+### Fixed
+- Tall glyphs in display math (integral signs, sum limits) could get
+  clipped on screen at certain zoom levels: the horizontal-scroll container
+  (`overflow-y: hidden`) cut off glyph ink extending past its 0.1em
+  padding. The scroll container now carries generous inner vertical
+  padding (with the outer margin reduced to keep the rhythm), so glyph
+  ink always fits inside the clip edge
+
 ## [0.3.2] - 2026-09-07
 
 ### Fixed
