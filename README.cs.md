@@ -49,7 +49,10 @@ z Chromu, nebo rovnou zveřejníš.
 - **jedna statická binárka** — žádné runtime závislosti, žádný JavaScript ve
   výstupu, fonty (Libertinus, JetBrains Mono) embedované jako WOFF2
 - **KaTeX matematika** při buildu (`$…$`, `$$…$$`) — nativní Rust port;
-  chybný TeX = chyba buildu s číslem řádku
+  chybný TeX = chyba buildu s číslem řádku. KaTeX neumí display math lámat,
+  proto mdprint v tisku povolí zlom na top-level operátorech a příliš
+  široké vzorce stupňovitě zmenší, aby se nic neuřízlo; plnou kontrolu
+  dají prostředí `aligned`/`split` s ručními `\\`
 - **zvýraznění kódu** — statické `<span>` (syntect), světlé téma pro tisk
 - **typografie pro češtinu, němčinu i angličtinu** nad AST (viz tabulky
   v [README.md](README.md#typography)): čeština dle ČSN 01 6910 (nezlomitelné

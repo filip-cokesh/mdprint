@@ -117,6 +117,18 @@ fn nemecky_showcase() {
 }
 
 #[test]
+fn dlouhe_vzorce() {
+    let html = build_fixture("vzorce", "vzorce.md", None, false);
+    // dlouhý display dostane zmenšovací třídu, krátký ne
+    assert!(html.contains("class=\"katex-display math-wide-"));
+    assert!(
+        html.contains("class=\"katex-display\""),
+        "krátký display bez třídy"
+    );
+    insta::assert_snapshot!("vzorce", html);
+}
+
+#[test]
 fn plna_stranka_ma_styly_a_fonty() {
     let src = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/akademicky");
     let dir = tempfile::tempdir().unwrap();

@@ -43,8 +43,18 @@
   }
   thead { display: table-header-group; }
 
-  /* blokové vzorce v tisku nerolují — případný přesah se nezlomí, jen ořízne */
-  .katex-display { overflow-x: visible; }
+  /* Blokové vzorce v tisku: rolovat nejde. Obě osy visible (kombinace
+     visible + hidden by se dle CSS přepočetla na auto → scrollbar
+     v náhledu); zlom povolen mezi top-level `.base` (KaTeX je dělí přesně
+     v místech povolených zlomů); vzorce širší než stránka zmenšuje třída
+     math-wide-N přidaná při buildu (KaTeX display math lámat neumí). */
+  .katex-display { overflow: visible; }
+  .katex-display .katex { white-space: normal; }
+  .katex-display.math-wide-1 > .katex { font-size: 0.85em; }
+  .katex-display.math-wide-2 > .katex { font-size: 0.72em; }
+  .katex-display.math-wide-3 > .katex { font-size: 0.6em; }
+  /* dlouhý inline vzorec se mírně zmenší, ať zbytečně neláme řádky */
+  span.katex.math-wide-1 { font-size: 0.85em; }
 
   /* dlouhé řádky kódu: zalamovat; visutou indentaci zalomených řádků
      zajistí per-line spany ze syntect (fáze 3): pre .line */

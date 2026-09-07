@@ -54,7 +54,10 @@ print it from Chrome, or publish it as-is.
 - **Single static binary** — no runtime dependencies, no JavaScript in the
   output, fonts (Libertinus, JetBrains Mono) embedded as WOFF2
 - **KaTeX math** rendered at build time (`$…$`, `$$…$$`) via a native Rust
-  port — invalid TeX fails the build with a line number
+  port — invalid TeX fails the build with a line number. KaTeX cannot
+  line-break display math, so in print mdprint allows breaks at top-level
+  operators and shrinks over-wide formulas in steps so nothing gets
+  clipped; for full control use `aligned`/`split` with explicit `\\`
 - **Syntax highlighting** — static `<span>`s (syntect), light theme suited
   for print
 - **Czech, German and English typography** applied on the AST — see below
