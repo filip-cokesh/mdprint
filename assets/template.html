@@ -48,13 +48,20 @@
 {{ toc }}
 {%- endif %}
 {{ body }}
-{%- if brand and (company_name or company_line) %}
+{%- if brand and (company_name or company_line or links) %}
 <footer class="brand-footer">
 {%- if company_name %}
 <span class="brand-footer-name">{{ company_name }}</span>
 {%- endif %}
 {%- if company_line %}
 <br>{{ company_line }}
+{%- endif %}
+{%- if links %}
+<nav class="brand-links">
+{%- for link in links %}
+<a class="brand-link" href="{{ link.url }}">{% if link.icon %}<img src="{{ link.icon }}" alt="">{% endif %}{{ link.label }}</a>
+{%- endfor %}
+</nav>
 {%- endif %}
 </footer>
 {%- endif %}

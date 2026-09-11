@@ -285,6 +285,34 @@ hr {
   blockquote { padding: 0.1em 0.8em; margin: 1em 0; }
 }
 
+/* ---- odkazy v brandované patičce ([[links]] z packu) ---- */
+.brand-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3em 1.2em;
+  margin-top: 0.4em;
+}
+.brand-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  text-decoration: none;
+}
+.brand-link:hover { text-decoration: underline; }
+.brand-link img { height: 1.1em; width: auto; display: block; }
+/* monochromatické ikony v tmavém režimu zbělají (tisk zůstává světlý,
+   tam filtr neplatí — media screen) */
+@media screen and (prefers-color-scheme: dark) {
+  html:not(:has(#theme-invert:checked)) .brand-link img {
+    filter: brightness(0) invert(1);
+  }
+}
+@media screen and (prefers-color-scheme: light) {
+  html:has(#theme-invert:checked) .brand-link img {
+    filter: brightness(0) invert(1);
+  }
+}
+
 /* ---- poznámky pod čarou ---- */
 section.footnotes {
   margin-top: 2.5em;

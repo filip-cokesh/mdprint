@@ -10,3 +10,12 @@ file = "fonts/DemoMono-Italic.woff2"
 family = "Demo Mono"
 weight = 400
 style = "italic"
+
+[[links]]
+label = "GitHub"
+url = "https://git.example.invalid/demo"
+icon = "icons/demo.svg"
+
+[[links]]
+label = "Web"
+url = "https://demo.example.invalid"

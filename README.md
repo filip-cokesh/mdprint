@@ -154,10 +154,14 @@ Documents may carry YAML front matter (`title`, `author`, `date`, `version`,
 typeset the Czech way (`2. 9. 2026`), `version` shows in the byline.
 
 A **template pack** is a folder with `pack.toml`, `template.css` and optional
-logos (`logo-light.png`, `logo-dark.png`) and fonts; pass it via
+logos (`logo-light.png`, `logo-dark.png`), fonts and footer links
+(`[[links]]`: label, URL and an optional SVG/PNG icon from the pack —
+monochrome icons invert to white in dark mode); pass it via
 `--template <folder>`. The output stays a single HTML file — pack assets are
 inlined like the built-in ones. See the pack section in
-[README.cs.md](README.cs.md) for the manifest schema.
+[README.cs.md](README.cs.md) for the manifest schema, or start from the
+forkable starter pack:
+**[mdprint-pack-starter](https://github.com/filip-cokesh/mdprint-pack-starter)**.
 
 ## CLI reference
 

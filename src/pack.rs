@@ -1,9 +1,10 @@
 //! Template packy — externí šablony načítané za běhu z disku.
 //!
-//! Pack je složka: `pack.toml` (metadata, [company] defaulty, [[fonts]]),
-//! `template.css` (vrstva vkládaná za print.css), volitelně `logo-light.png`
-//! a `logo-dark.png`. Jde o vědomou výjimku z pravidla „žádné čtení z disku
-//! za běhu" — vestavěná default šablona zůstává plně embedovaná.
+//! Pack je složka: `pack.toml` (metadata, [company] defaulty, [[fonts]],
+//! [[links]] pro odkazy v patičce), `template.css` (vrstva vkládaná za
+//! print.css), volitelně `logo-light.png` a `logo-dark.png`. Jde o vědomou
+//! výjimku z pravidla „žádné čtení z disku za běhu" — vestavěná default
+//! šablona zůstává plně embedovaná.
 
 use std::fs;
 use std::path::Path;
@@ -26,6 +27,8 @@ struct Manifest {
     company: Company,
     #[serde(default)]
     fonts: Vec<FontDecl>,
+    #[serde(default)]
+    links: Vec<LinkDecl>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -44,6 +47,17 @@ struct FontDecl {
     style: Option<String>,
 }
 
+/// Odkaz v patičce (`[[links]]` v pack.toml); ikona je volitelný SVG/PNG
+/// soubor uvnitř složky packu.
+#[derive(Deserialize, Debug)]
+#[serde(deny_unknown_fields)]
+struct LinkDecl {
+    label: String,
+    url: String,
+    #[serde(default)]
+    icon: Option<String>,
+}
+
 #[derive(Debug)]
 pub struct PackFont {
     pub family: String,
@@ -53,10 +67,19 @@ pub struct PackFont {
 }
 
 #[derive(Debug)]
+pub struct PackLink {
+    pub label: String,
+    pub url: String,
+    /// Ikona jako base64 data URI (`image/svg+xml` nebo `image/png`).
+    pub icon_data_uri: Option<String>,
+}
+
+#[derive(Debug)]
 pub struct TemplatePack {
     pub name: String,
     pub css: String,
     pub fonts: Vec<PackFont>,
+    pub links: Vec<PackLink>,
     pub logo_light: Option<Vec<u8>>,
     pub logo_dark: Option<Vec<u8>>,
     /// Defaulty údajů firmy z pack.toml; `[company]` v mdprint.toml je přebíjí.
@@ -81,18 +104,7 @@ impl TemplatePack {
             .with_context(|| format!("nelze rozložit cestu packu {}", dir.display()))?;
         let mut fonts = Vec::new();
         for decl in manifest.fonts {
-            let path = dir.join(&decl.file);
-            // soubory packu musí ležet uvnitř složky packu (žádné ../ ven)
-            let canonical = path
-                .canonicalize()
-                .with_context(|| format!("chybí font šablony {}", path.display()))?;
-            anyhow::ensure!(
-                canonical.starts_with(&pack_root),
-                "font šablony {} leží mimo složku packu — cesty v pack.toml musí zůstat uvnitř",
-                decl.file
-            );
-            let bytes = fs::read(&canonical)
-                .with_context(|| format!("chybí font šablony {}", path.display()))?;
+            let bytes = read_pack_file(dir, &pack_root, &decl.file, "font šablony")?;
             fonts.push(PackFont {
                 family: decl.family,
                 weight: decl.weight,
@@ -101,10 +113,35 @@ impl TemplatePack {
             });
         }
 
+        let mut links = Vec::new();
+        for decl in manifest.links {
+            let icon_data_uri = match &decl.icon {
+                Some(rel) => {
+                    let mime = match Path::new(rel).extension().and_then(|e| e.to_str()) {
+                        Some(e) if e.eq_ignore_ascii_case("svg") => "image/svg+xml",
+                        Some(e) if e.eq_ignore_ascii_case("png") => "image/png",
+                        _ => anyhow::bail!(
+                            "ikona odkazu {rel} v {} musí být .svg nebo .png",
+                            manifest_path.display()
+                        ),
+                    };
+                    let bytes = read_pack_file(dir, &pack_root, rel, "ikona odkazu")?;
+                    Some(crate::assets::image_data_uri(mime, &bytes))
+                }
+                None => None,
+            };
+            links.push(PackLink {
+                label: decl.label,
+                url: decl.url,
+                icon_data_uri,
+            });
+        }
+
         Ok(TemplatePack {
             name: manifest.pack.name,
             css,
             fonts,
+            links,
             logo_light: read_optional(&dir.join(LOGO_LIGHT_FILE))?,
             logo_dark: read_optional(&dir.join(LOGO_DARK_FILE))?,
             company: manifest.company,
@@ -121,6 +158,20 @@ impl TemplatePack {
         }
         css
     }
+}
+
+/// Přečte soubor deklarovaný v pack.toml; soubory packu musí ležet uvnitř
+/// jeho složky (žádné `../` ven). `what` je český popisek do chybové hlášky.
+fn read_pack_file(dir: &Path, pack_root: &Path, rel: &str, what: &str) -> Result<Vec<u8>> {
+    let path = dir.join(rel);
+    let canonical = path
+        .canonicalize()
+        .with_context(|| format!("chybí {what} {}", path.display()))?;
+    anyhow::ensure!(
+        canonical.starts_with(pack_root),
+        "{what} {rel} leží mimo složku packu — cesty v pack.toml musí zůstat uvnitř"
+    );
+    fs::read(&canonical).with_context(|| format!("chybí {what} {}", path.display()))
 }
 
 fn read_optional(path: &Path) -> Result<Option<Vec<u8>>> {
@@ -161,6 +212,42 @@ mod tests {
         assert!(pack.logo_light.is_some() && pack.logo_dark.is_some());
         assert_eq!(pack.fonts.len(), 1);
         assert!(pack.fonts_css().contains("base64,d09G"));
+        assert_eq!(pack.links.len(), 2);
+        assert_eq!(pack.links[0].label, "GitHub");
+        assert!(
+            pack.links[0]
+                .icon_data_uri
+                .as_deref()
+                .unwrap()
+                .starts_with("data:image/svg+xml;base64,")
+        );
+        assert!(pack.links[1].icon_data_uri.is_none());
+    }
+
+    #[test]
+    fn link_icon_cannot_escape_pack_dir_and_rejects_odd_extension() {
+        let dir = tempfile::tempdir().unwrap();
+        let pack = dir.path().join("pack");
+        std::fs::create_dir(&pack).unwrap();
+        std::fs::write(dir.path().join("tajny.svg"), b"<svg/>").unwrap();
+        std::fs::write(pack.join("template.css"), "/* */").unwrap();
+
+        std::fs::write(
+            pack.join("pack.toml"),
+            "[pack]\nname = \"zly\"\n\n[[links]]\nlabel = \"X\"\nurl = \"https://x.invalid\"\nicon = \"../tajny.svg\"\n",
+        )
+        .unwrap();
+        let err = TemplatePack::load(&pack).unwrap_err();
+        assert!(err.to_string().contains("mimo složku packu"), "{err}");
+
+        std::fs::write(pack.join("ikona.gif"), b"GIF89a").unwrap();
+        std::fs::write(
+            pack.join("pack.toml"),
+            "[pack]\nname = \"zly\"\n\n[[links]]\nlabel = \"X\"\nurl = \"https://x.invalid\"\nicon = \"ikona.gif\"\n",
+        )
+        .unwrap();
+        let err = TemplatePack::load(&pack).unwrap_err();
+        assert!(err.to_string().contains("musí být .svg nebo .png"), "{err}");
     }
 
     #[test]

@@ -478,6 +478,10 @@ text pro struč­nost vyne­chává. <a href="#fnref-posudek" class="footnote-ba
 <footer class="brand-footer">
 <span class="brand-footer-name">Demo s.r.o.</span>
 <br>demo.example
+<nav class="brand-links">
+<a class="brand-link" href="https:&#x2f;&#x2f;git.example.invalid&#x2f;demo"><img alt="" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PGNpcmNsZSBjeD0iOCIgY3k9IjgiIHI9IjciLz48L3N2Zz4=">GitHub</a>
+<a class="brand-link" href="https:&#x2f;&#x2f;demo.example.invalid">Web</a>
+</nav>
 </footer>
 </article>
 </body>

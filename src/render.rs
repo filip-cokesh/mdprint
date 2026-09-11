@@ -168,6 +168,19 @@ pub fn page_html(
     });
 
     let safe = minijinja::value::Value::from_safe_string;
+    // odkazy patičky z packu; label a url projdou autoescapem šablony
+    let links: Vec<minijinja::value::Value> = pack
+        .map(|p| p.links.as_slice())
+        .unwrap_or_default()
+        .iter()
+        .map(|l| {
+            minijinja::context! {
+                label => l.label,
+                url => l.url,
+                icon => l.icon_data_uri.clone().map(safe),
+            }
+        })
+        .collect();
     let page = env
         .get_template("page.html")
         .expect("šablona registrována výše")
@@ -180,6 +193,7 @@ pub fn page_html(
             brand => pack.is_some(),
             company_name => company.as_ref().and_then(|c| c.name.clone()),
             company_line,
+            links,
             // data URI je bezpečné (base64 abeceda) — bez autoescape entit
             logo_light => pack
                 .and_then(|p| p.logo_light.as_deref())

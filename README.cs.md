@@ -105,7 +105,8 @@ muj-pack/
 ├─ template.css        # povinné: CSS vrstva vkládaná ZA vestavěné styly
 ├─ logo-light.png      # volitelné: logo pro světlý režim a tisk
 ├─ logo-dark.png       # volitelné: logo pro tmavý režim
-└─ fonts/*.woff2       # volitelné: fonty deklarované v pack.toml
+├─ fonts/*.woff2       # volitelné: fonty deklarované v pack.toml
+└─ icons/*.svg|png     # volitelné: ikony odkazů deklarovaných v pack.toml
 ```
 
 ```toml
@@ -121,12 +122,19 @@ file = "fonts/MujFont-Bold.woff2"
 family = "Můj Font"
 weight = 700
 style = "normal"       # volitelné, výchozí "normal"
+
+[[links]]              # odkazy v patičce (opakovatelné)
+label = "GitHub"
+url = "https://github.com/uzivatel"
+icon = "icons/github.svg"  # volitelné; SVG/PNG uvnitř packu, inlinuje se —
+                           # monochromatická ikona se v tmavém režimu invertuje
 ```
 
 Aktivní pack vloží `<header class="brand-header">` (loga + název) a
-`<footer class="brand-footer">` s údaji `[company]`; vzhled řídí
-`template.css` (třídy `.brand-*`, přepis tokenů `--c-*`, `--font-*`).
-Výstup zůstává jeden HTML soubor.
+`<footer class="brand-footer">` s údaji `[company]` a odkazy `[[links]]`;
+vzhled řídí `template.css` (třídy `.brand-*`, přepis tokenů `--c-*`,
+`--font-*`). Výstup zůstává jeden HTML soubor. Startovní pack k forknutí:
+**[mdprint-pack-starter](https://github.com/filip-cokesh/mdprint-pack-starter)**.
 
 ## Build ze zdrojáků
 

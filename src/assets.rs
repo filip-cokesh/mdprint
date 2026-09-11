@@ -14,7 +14,12 @@ pub const KATEX_CSS: &str = include_str!("../assets/katex.css");
 
 /// PNG jako data URI pro `<img src>`.
 pub fn png_data_uri(bytes: &[u8]) -> String {
-    format!("data:image/png;base64,{}", B64.encode(bytes))
+    image_data_uri("image/png", bytes)
+}
+
+/// Obrázek daného MIME typu jako base64 data URI pro `<img src>`.
+pub fn image_data_uri(mime: &str, bytes: &[u8]) -> String {
+    format!("data:{mime};base64,{}", B64.encode(bytes))
 }
 
 pub struct FontFace {

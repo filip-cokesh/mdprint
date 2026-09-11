@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.4.0] - 2026-09-08
+
+### Added
+- **Footer links in template packs** (`[[links]]` in `pack.toml`): label,
+  URL and an optional SVG/PNG icon from the pack folder, rendered as a row
+  of links in the branded footer. Icons are inlined as data URIs; monochrome
+  icons are inverted to white in dark mode. Icon paths get the same
+  inside-the-pack guard as fonts
+- A forkable starter pack:
+  [mdprint-pack-starter](https://github.com/filip-cokesh/mdprint-pack-starter)
+
 ## [0.3.3] - 2026-09-07
 
 ### Fixed
