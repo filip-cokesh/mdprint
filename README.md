@@ -70,8 +70,10 @@ print it from Chrome, or publish it as-is.
   `<slug>-<hash>`, cleanup driven by a manifest (mdprint never deletes
   anything it didn't create), optional `--fetch` for remote images with
   a disk cache
-- **Dark mode without JavaScript** — follows `prefers-color-scheme`, manual
-  CSS-only toggle, print always stays light
+- **Dark mode and font size without JavaScript** — dark mode follows
+  `prefers-color-scheme` with a manual CSS-only toggle (print always stays
+  light); an A/A/A switcher picks small/default/large type for both screen
+  and print (the controls themselves never print)
 - **Template packs** — external branding (logo header, colors, fonts,
   company footer) loaded from a folder at run time, no recompilation
 

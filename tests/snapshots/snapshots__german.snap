@@ -13,7 +13,8 @@ expression: html
 <style>…</style>
 </head>
 <body>
-<label class="theme-switch" title="Světlý / tmavý režim"><input id="theme-invert" type="checkbox">◐</label>
+<span class="fs-switch" title="Schriftgröße"><label class="fs fs-s"><input id="fs-small" name="fs" type="radio">A</label><label class="fs fs-m"><input type="radio" name="fs" id="fs-normal" checked>A</label><label class="fs fs-l"><input id="fs-large" name="fs" type="radio">A</label></span>
+<label class="theme-switch" title="Heller &#x2f; dunkler Modus"><input id="theme-invert" type="checkbox">◐</label>
 <article class="doc">
 <header class="doc-header">
 <h1 class="doc-title">Durchbiegung eines Einfeldträgers unter Gleichstreckenlast</h1>

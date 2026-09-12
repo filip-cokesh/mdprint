@@ -65,6 +65,40 @@ label.theme-switch {
 label.theme-switch:hover { opacity: 1; }
 label.theme-switch input { position: absolute; opacity: 0; width: 0; height: 0; }
 
+/* přepínač velikosti písma (tři radia v labelech, žádný skript);
+   vlevo od ◐, do tisku nejde (print.css ho skrývá). POZOR: sedí fixed
+   v rem → záměrně se zvětšuje/zmenšuje spolu se zvolenou velikostí. */
+span.fs-switch {
+  position: fixed;
+  top: 0.6rem;
+  right: 2.4rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1;
+  user-select: none;
+  color: var(--c-text);
+  z-index: 10;
+}
+span.fs-switch label.fs { cursor: pointer; opacity: 0.45; }
+span.fs-switch label.fs:hover { opacity: 1; }
+span.fs-switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+label.fs-s { font-size: 0.8em; }
+label.fs-m { font-size: 0.95em; }
+label.fs-l { font-size: 1.1em; }
+span.fs-switch label.fs:has(input:checked) { font-weight: 700; opacity: 0.8; }
+
+/* Škálování dokumentu volbou velikosti: vše je v rem/em, takže stačí
+   kořenový font-size; s ním škáluje i max-width sazby (44rem) — počet
+   znaků na řádek zůstává. Default (#fs-normal) = 100 % bez pravidla.
+   Tiskové velikosti řeší print.css v pt. */
+@media screen {
+  html:has(#fs-small:checked) { font-size: 87.5%; }
+  html:has(#fs-large:checked) { font-size: 115%; }
+}
+
 *, *::before, *::after { box-sizing: border-box; }
 
 html {

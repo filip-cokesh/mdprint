@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.5.0] - 2026-09-12
+
+### Added
+- **Font-size switcher** (A/A/A next to the theme toggle, CSS-only, no
+  JavaScript): small (−12.5 %) / default / large (+15 %) type. The choice
+  applies to screen and print alike (large prints at 12 pt, small at
+  9.5 pt), the selected A is shown bold, and the controls themselves never
+  appear in print. Line wrapping and hyphenation reflow naturally — soft
+  hyphens are part of the text, so no re-rendering is needed
+
+### Changed
+- Tooltips of the theme and font-size switchers are localized (cs/en/de);
+  the theme tooltip was previously hard-coded Czech
+
 ## [0.4.0] - 2026-09-08
 
 ### Added

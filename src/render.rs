@@ -145,6 +145,13 @@ pub fn page_html(
     // hlavička jen když front matter nese title
     let show_header = front_matter.is_some_and(|fm| fm.title.is_some());
 
+    // lokalizované popisky přepínačů (title atributy; do tisku nejdou)
+    let (ui_theme, ui_fontsize) = match cfg.lang {
+        Lang::Cs => ("Světlý / tmavý režim", "Velikost písma"),
+        Lang::En => ("Light / dark mode", "Font size"),
+        Lang::De => ("Heller / dunkler Modus", "Schriftgröße"),
+    };
+
     // branding jen s aktivním packem; údaje firmy: pack defaulty ← toml override
     let company = pack.map(|p| crate::pack::merge_company(&p.company, &cfg.company));
     let company_line = company.as_ref().map(|c| {
@@ -190,6 +197,8 @@ pub fn page_html(
             author,
             byline,
             show_header,
+            ui_theme,
+            ui_fontsize,
             brand => pack.is_some(),
             company_name => company.as_ref().and_then(|c| c.name.clone()),
             company_line,

@@ -159,7 +159,12 @@ fn plna_stranka_ma_styly_a_fonty() {
     // tmavý režim: jen pro screen, s CSS-only přepínačem; tisk ho skrývá
     assert!(html.contains("@media screen and (prefers-color-scheme: dark)"));
     assert!(html.contains("id=\"theme-invert\""));
-    assert!(html.contains("label.theme-switch { display: none; }"));
+    // přepínač velikosti písma: tři radia, škálování screen i print,
+    // oba přepínače se v tisku skrývají
+    assert!(html.contains("id=\"fs-normal\" checked"));
+    assert!(html.contains("html:has(#fs-large:checked) { font-size: 115%; }"));
+    assert!(html.contains("html:has(#fs-large:checked) { font-size: 12pt; }"));
+    assert!(html.contains("label.theme-switch, span.fs-switch { display: none; }"));
     assert!(
         !html.contains("<script"),
         "výstup nesmí obsahovat JavaScript"

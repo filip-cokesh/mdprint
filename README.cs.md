@@ -67,8 +67,10 @@ z Chromu, nebo rovnou zveřejníš.
   indentací, URL za externími odkazy
 - **obrázky** — cesty relativně ke vstupu, kopie `<slug>-<hash>`, úklid řízený
   manifestem (nikdy se nemaže nic cizího), `--fetch` s diskovou cache
-- **tmavý režim bez JavaScriptu** — dle systému + ruční CSS přepínač ◐,
-  tisk vždy světlý
+- **tmavý režim a velikost písma bez JavaScriptu** — tmavý režim dle
+  systému + ruční CSS přepínač ◐ (tisk vždy světlý); přepínač A/A/A volí
+  menší/výchozí/větší písmo pro obrazovku i tisk (samotná tlačítka se
+  netisknou)
 - **template packy** — externí branding (logo, barvy, fonty, patička firmy)
   ze složky za běhu, bez rekompilace
 

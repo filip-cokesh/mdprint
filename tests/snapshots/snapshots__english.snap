@@ -13,7 +13,8 @@ expression: html
 <style>…</style>
 </head>
 <body>
-<label class="theme-switch" title="Světlý / tmavý režim"><input id="theme-invert" type="checkbox">◐</label>
+<span class="fs-switch" title="Font size"><label class="fs fs-s"><input id="fs-small" name="fs" type="radio">A</label><label class="fs fs-m"><input type="radio" name="fs" id="fs-normal" checked>A</label><label class="fs fs-l"><input id="fs-large" name="fs" type="radio">A</label></span>
+<label class="theme-switch" title="Light &#x2f; dark mode"><input id="theme-invert" type="checkbox">◐</label>
 <article class="doc">
 <header class="doc-header">
 <h1 class="doc-title">Deflection of a simply supported beam under uniform load</h1>

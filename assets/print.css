@@ -9,10 +9,14 @@
 
 @media print {
   html { font-size: 10.5pt; }
+  /* velikost písma zvolená na obrazovce platí i pro tisk (Ctrl+P čte
+     živý stav radia); html:has(#id) přebije html výše specificitou */
+  html:has(#fs-small:checked) { font-size: 9.5pt; }
+  html:has(#fs-large:checked) { font-size: 12pt; }
 
-  /* tisk je vždy světlý — bez ohledu na režim obrazovky; přepínač se netiskne */
+  /* tisk je vždy světlý — bez ohledu na režim obrazovky; přepínače se netisknou */
   body { color: #000; background: #fff; }
-  label.theme-switch { display: none; }
+  label.theme-switch, span.fs-switch { display: none; }
 
   article.doc {
     max-width: none;

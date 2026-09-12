@@ -21,7 +21,8 @@
 </style>
 </head>
 <body>
-<label class="theme-switch" title="Světlý / tmavý režim"><input type="checkbox" id="theme-invert">◐</label>
+<span class="fs-switch" title="{{ ui_fontsize }}"><label class="fs fs-s"><input type="radio" name="fs" id="fs-small">A</label><label class="fs fs-m"><input type="radio" name="fs" id="fs-normal" checked>A</label><label class="fs fs-l"><input type="radio" name="fs" id="fs-large">A</label></span>
+<label class="theme-switch" title="{{ ui_theme }}"><input type="checkbox" id="theme-invert">◐</label>
 <article class="doc">
 {%- if brand %}
 <header class="brand-header">
