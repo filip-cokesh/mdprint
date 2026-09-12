@@ -73,7 +73,5 @@ specificitu při skrývání variant log (`.brand-header .brand-logo-dark`).
 
 ## Backlog
 
-- Konfigurovatelná velikost matematiky v mdprint.toml (nyní screen.css:
-  inline `.katex` 0.95em, display 1em)
-- Tmavé téma pro bloky kódu (nyní záměrně světlé „ostrůvky" v obou režimech —
-  vyžadovalo by druhé syntect téma se scopovanými selektory)
+(prázdný — velikost matematiky řeší `[math]` v mdprint.toml od 0.6.0,
+tmavé téma kódu Base16 Ocean Dark od 0.7.0)
