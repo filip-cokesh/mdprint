@@ -348,3 +348,52 @@ fn lang_priority_cli_over_front_matter() {
             .contains("<html lang=\"cs\">")
     );
 }
+
+#[test]
+fn math_size_from_toml_and_range_validation() {
+    let dir = tempfile::tempdir().unwrap();
+    let input = dir.path().join("m.md");
+    fs::write(&input, "Text $E = mc^2$.\n\n$$\\frac{a}{b}$$\n").unwrap();
+
+    // default bez tomlu
+    let out = mdprint::run(&cli(input.clone())).unwrap();
+    let html = fs::read_to_string(&out).unwrap();
+    assert!(html.contains("--math-inline:0.95em;--math-display:1em;"));
+
+    // [math] z mdprint.toml
+    fs::write(
+        dir.path().join("mdprint.toml"),
+        "[math]\ninline = 1.1\ndisplay = 1.3\n",
+    )
+    .unwrap();
+    let out = mdprint::run(&cli(input.clone())).unwrap();
+    let html = fs::read_to_string(&out).unwrap();
+    assert!(html.contains("--math-inline:1.1em;--math-display:1.3em;"));
+
+    // mimo rozsah = čitelná chyba
+    fs::write(dir.path().join("mdprint.toml"), "[math]\ndisplay = 3.0\n").unwrap();
+    let err = mdprint::run(&cli(input)).unwrap_err();
+    assert!(err.to_string().contains("mimo rozsah 0.5–2.0"), "{err}");
+}
+
+#[test]
+fn math_wide_tiers_scale_with_configured_size() {
+    // vzorec pod polovinou rozpočtu (21–42 em) při defaultu → bez tieru,
+    // s display = 2.0 → fyzicky 2× širší → tier
+    let dir = tempfile::tempdir().unwrap();
+    let input = dir.path().join("w.md");
+    // pozor: holé "math-wide" je vždy přítomné v inlinovaném print.css —
+    // testovat se musí třída na vzorci
+    let tex = "a_1 + a_2 + a_3 + a_4 + a_5 + a_6 + a_7 + a_8 + a_9 + b_1 + b_2 + b_3";
+    let tier = "class=\"katex-display math-wide";
+    fs::write(&input, format!("$${tex}$$\n")).unwrap();
+
+    let out = mdprint::run(&cli(input.clone())).unwrap();
+    let html = fs::read_to_string(&out).unwrap();
+    assert!(!html.contains(tier), "default nesmí mít tier");
+
+    fs::write(dir.path().join("mdprint.toml"), "[math]\ndisplay = 2.0\n").unwrap();
+    let out = mdprint::run(&cli(input)).unwrap();
+    let html = fs::read_to_string(&out).unwrap();
+    assert!(html.contains(tier), "zvětšená math musí do tieru");
+}

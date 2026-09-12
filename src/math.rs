@@ -11,10 +11,20 @@ pub struct MathRenderer {
     ctx: KatexContext,
     inline: Settings,
     display: Settings,
+    /// Násobky šířky vůči defaultním velikostem ([math] v mdprint.toml):
+    /// větší písmo vzorce = fyzicky širší sazba = dřívější math-wide tier.
+    inline_scale: f32,
+    display_scale: f32,
 }
 
 impl MathRenderer {
     pub fn new() -> Self {
+        Self::with_sizes(0.95, 1.0)
+    }
+
+    /// `inline_em`/`display_em` = velikosti matematiky z konfigurace
+    /// (`Config::math_inline`/`math_display`).
+    pub fn with_sizes(inline_em: f64, display_em: f64) -> Self {
         let settings = |display_mode: bool| {
             Settings::builder()
                 .display_mode(display_mode)
@@ -25,6 +35,8 @@ impl MathRenderer {
             ctx: KatexContext::default(),
             inline: settings(false),
             display: settings(true),
+            inline_scale: (inline_em / 0.95) as f32,
+            display_scale: display_em as f32,
         }
     }
 
@@ -46,7 +58,12 @@ impl MathRenderer {
             };
             let mut html = katex::render_to_string(&self.ctx, &m.literal, settings)
                 .map_err(|e| anyhow!("chyba KaTeX (řádek {line}): {e}"))?;
-            html = tag_wide_math(&html, &m.literal, m.display_math);
+            let scale = if m.display_math {
+                self.display_scale
+            } else {
+                self.inline_scale
+            };
+            html = tag_wide_math(&html, &m.literal, m.display_math, scale);
             data.value = NodeValue::HtmlInline(html);
         }
         Ok(())
@@ -59,9 +76,10 @@ const DISPLAY_BUDGET_EM: f32 = 42.0;
 /// Inline vzorec delší než ~36 em (většina řádku) se v tisku mírně zmenší.
 const INLINE_BUDGET_EM: f32 = 36.0;
 
-/// Přidá třídu `math-wide-N` podle odhadované šířky vzorce.
-fn tag_wide_math(html: &str, tex: &str, display: bool) -> String {
-    let width = estimate_width_em(tex);
+/// Přidá třídu `math-wide-N` podle odhadované šířky vzorce; `scale` je
+/// násobek konfigurované velikosti vůči defaultu (rozpočty platí pro default).
+fn tag_wide_math(html: &str, tex: &str, display: bool, scale: f32) -> String {
+    let width = estimate_width_em(tex) * scale;
     if display {
         let tier = match width {
             w if w > 65.0 => 3,

@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.6.0] - 2026-09-12
+
+### Added
+- **Configurable math size**: a `[math]` section in `mdprint.toml` with
+  `inline` and `display` (em relative to the surrounding text, range
+  0.5–2.0; defaults 0.95/1.0 stay calibrated for Libertinus). The
+  page-fit shrink of over-wide formulas in print scales along, so
+  enlarged math still fits the page
+
 ## [0.5.0] - 2026-09-12
 
 ### Added

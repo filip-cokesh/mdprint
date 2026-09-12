@@ -234,10 +234,14 @@ fn vars_css(cfg: &Config) -> String {
          --font-serif:'{serif}','Libertinus Serif',Georgia,'Times New Roman',serif;\
          --font-sans:'{sans}','Libertinus Sans','Segoe UI',Arial,sans-serif;\
          --font-mono:'{mono}','JetBrains Mono',Consolas,monospace;\
+         --math-inline:{inline}em;\
+         --math-display:{display}em;\
          }}\n",
         serif = cfg.font_serif,
         sans = cfg.font_sans,
         mono = cfg.font_mono,
+        inline = cfg.math_inline,
+        display = cfg.math_display,
     )
 }
 

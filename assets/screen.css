@@ -288,8 +288,9 @@ nav.toc a:hover { text-decoration: underline; }
 
 /* ---- doladění KaTeX vůči Libertinusu ----
    KaTeX default 1.21em je kalibrovaný na jiné poměry; x-výšky KaTeX_Main
-   a Libertinus Serif jsou téměř shodné, proto inline matematika = 1em. */
-.katex { font-size: 0.95em; }
+   a Libertinus Serif jsou téměř shodné, proto defaulty 0.95em/1em.
+   Hodnoty proměnných plní vars_css z [math] v mdprint.toml. */
+.katex { font-size: var(--math-inline, 0.95em); }
 /* Dlouhý blokový vzorec na úzkém displeji roluje, nerozbíjí stránku.
    POZOR: overflow-y: hidden ořezává i inkoustový přesah vysokých glyfů
    (integrály, sumy) — proto velkorysý svislý padding UVNITŘ ořezové hrany
@@ -300,7 +301,7 @@ nav.toc a:hover { text-decoration: underline; }
   overflow-x: auto;
   overflow-y: hidden;
 }
-.katex-display > .katex { font-size: 1em; }
+.katex-display > .katex { font-size: var(--math-display, 1em); }
 
 /* ---- horizontální linka ---- */
 hr {

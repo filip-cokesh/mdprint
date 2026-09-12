@@ -61,7 +61,7 @@ pub fn run(cli: &Cli) -> Result<PathBuf> {
 
     typo::apply(root, cfg.lang)?;
     hyphen::Hyphenator::new(cfg.lang)?.apply(root);
-    math::MathRenderer::new().render_all(root)?;
+    math::MathRenderer::with_sizes(cfg.math_inline, cfg.math_display).render_all(root)?;
     highlight::Highlighter::new().highlight_all(root)?;
 
     images::process(

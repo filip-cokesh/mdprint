@@ -94,8 +94,10 @@ v uvozovkách, holé `1.20` by YAML zkrátil na 1.2).
 
 Viz okomentovaný příklad v [README.md](README.md#configuration) — klíče:
 `lang`, `template`, `[paper]` (size, margin), `[figures]` (prefix,
-numbering), `[fonts]` (serif, sans, mono), `[company]` (patička brandované
-šablony). CLI přepínače konfiguraci přebíjejí.
+numbering), `[fonts]` (serif, sans, mono), `[math]` (inline, display —
+velikost matematiky v em, rozsah 0,5–2,0; zmenšování širokých vzorců
+pro tisk se přizpůsobí), `[company]` (patička brandované šablony).
+CLI přepínače konfiguraci přebíjejí.
 
 ## Template packy
 

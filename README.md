@@ -142,6 +142,10 @@ serif = "Libertinus Serif"
 sans = "Libertinus Sans"
 mono = "JetBrains Mono"
 
+[math]                          # math size in em relative to surrounding text
+inline = 0.95                   # allowed range 0.5–2.0; defaults calibrated
+display = 1.0                   # for Libertinus (page-fit shrink adapts)
+
 [company]                       # footer of a branded template pack;
 name = "…"                      # overrides the pack's own defaults
 address = "…"

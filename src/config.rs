@@ -16,7 +16,18 @@ pub struct FileConfig {
     pub paper: Option<Paper>,
     pub figures: Option<Figures>,
     pub fonts: Option<Fonts>,
+    pub math: Option<Math>,
     pub company: Option<Company>,
+}
+
+/// Velikost matematiky (`[math]`), v em vůči okolnímu textu.
+#[derive(Deserialize, Default, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct Math {
+    /// Inline vzorce (výchozí 0.95 — kalibrováno na Libertinus)
+    pub inline: Option<f64>,
+    /// Blokové vzorce (výchozí 1.0)
+    pub display: Option<f64>,
 }
 
 /// Údaje firmy pro patičku brandované šablony (`[company]`).
@@ -68,6 +79,10 @@ pub struct Config {
     pub font_serif: String,
     pub font_sans: String,
     pub font_mono: String,
+    /// Velikost inline matematiky v em (výchozí 0.95).
+    pub math_inline: f64,
+    /// Velikost blokové matematiky v em (výchozí 1.0).
+    pub math_display: f64,
     /// Složka template packu; `None` = vestavěná default šablona.
     pub pack_dir: Option<PathBuf>,
     /// `[company]` z mdprint.toml (přebíjí defaulty z pack.toml).
@@ -123,6 +138,16 @@ impl Config {
         let figures = file_cfg.figures.unwrap_or_default();
         let fonts = file_cfg.fonts.unwrap_or_default();
 
+        let math = file_cfg.math.unwrap_or_default();
+        let math_inline = math.inline.unwrap_or(0.95);
+        let math_display = math.display.unwrap_or(1.0);
+        for (name, value) in [("inline", math_inline), ("display", math_display)] {
+            anyhow::ensure!(
+                (0.5..=2.0).contains(&value),
+                "[math] {name} = {value} je mimo rozsah 0.5–2.0 (velikost v em)"
+            );
+        }
+
         Ok(Config {
             lang,
             paper_size: paper.size.unwrap_or_else(|| "A4".into()),
@@ -140,6 +165,8 @@ impl Config {
             font_serif: fonts.serif.unwrap_or_else(|| "Libertinus Serif".into()),
             font_sans: fonts.sans.unwrap_or_else(|| "Libertinus Sans".into()),
             font_mono: fonts.mono.unwrap_or_else(|| "JetBrains Mono".into()),
+            math_inline,
+            math_display,
             pack_dir,
             company,
             toc: cli.toc,
