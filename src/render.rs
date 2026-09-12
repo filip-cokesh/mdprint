@@ -218,12 +218,26 @@ pub fn page_html(
             vars_css => safe(vars_css(cfg)),
             katex_css => safe(assets::KATEX_CSS.to_string()),
             syntax_css => safe(crate::highlight::Highlighter::css()?),
+            syntax_dark_css => safe(scoped_dark_syntax_css()?),
             screen_css => safe(assets::SCREEN_CSS.to_string()),
             print_css => safe(print_css),
             body => safe(body.to_string()),
         })
         .context("render šablony selhal")?;
     Ok(page)
+}
+
+/// Tmavé syntect téma scopované na tmavý režim obrazovky přes CSS nesting
+/// (vnořené třídní selektory = potomkové; syntect generuje jen třídy).
+/// Tisk zůstává u světlého tématu — oba bloky jsou `@media screen`.
+fn scoped_dark_syntax_css() -> Result<String> {
+    let dark = crate::highlight::Highlighter::css_dark()?;
+    Ok(format!(
+        "@media screen and (prefers-color-scheme: dark) {{\n\
+         html:not(:has(#theme-invert:checked)) {{\n{dark}}}\n}}\n\
+         @media screen and (prefers-color-scheme: light) {{\n\
+         html:has(#theme-invert:checked) {{\n{dark}}}\n}}\n"
+    ))
 }
 
 /// CSS proměnné s fontovými stacky; primární rodiny lze přepsat v mdprint.toml

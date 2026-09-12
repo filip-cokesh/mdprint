@@ -53,7 +53,8 @@ z Chromu, nebo rovnou zveřejníš.
   proto mdprint v tisku povolí zlom na top-level operátorech a příliš
   široké vzorce stupňovitě zmenší, aby se nic neuřízlo; plnou kontrolu
   dají prostředí `aligned`/`split` s ručními `\\`
-- **zvýraznění kódu** — statické `<span>` (syntect), světlé téma pro tisk
+- **zvýraznění kódu** — statické `<span>` (syntect); světlé téma na
+  obrazovce i v tisku, v tmavém režimu tmavé (Base16 Ocean Dark)
 - **typografie pro češtinu, němčinu i angličtinu** nad AST (viz tabulky
   v [README.md](README.md#typography)): čeština dle ČSN 01 6910 (nezlomitelné
   mezery, uvozovky „…“ ‚…‘, pomlčky, rozsahy, `…`, `×`, tisíce úzkou mezerou),

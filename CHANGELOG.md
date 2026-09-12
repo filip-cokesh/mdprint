@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.7.0] - 2026-09-12
+
+### Added
+- **Dark theme for code blocks**: in dark mode, fenced code is now
+  highlighted with Base16 Ocean Dark on a matching dark panel instead of
+  staying a light island. Print always keeps the light InspiredGitHub
+  theme, whatever the on-screen mode
+
 ## [0.6.0] - 2026-09-12
 
 ### Added

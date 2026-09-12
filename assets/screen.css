@@ -3,8 +3,9 @@
 /* Barevné tokeny. Tmavý režim: automaticky dle prefers-color-scheme,
    ručně invertovatelný CSS-only přepínačem (#theme-invert, :has()) —
    bez JavaScriptu. Tisk tokeny nemění: tmavé bloky platí jen pro screen
-   a print.css barvy stejně vynucuje. Kód (pre) zůstává záměrně světlý
-   „ostrůvek" v obou režimech — syntect barvy jsou laděné na světlé pozadí. */
+   a print.css barvy stejně vynucuje. Kód (pre) má dvě syntect témata:
+   světlé InspiredGitHub (default a tisk) a tmavé base16-ocean.dark,
+   scopované na tmavý režim v render.rs (syntax_dark_css). */
 :root {
   color-scheme: light;
   --c-bg: #ffffff;
@@ -16,6 +17,9 @@
   --c-link-visited: #5a3d8f;
   --c-panel: #fafaf8;
   --c-code-bg: #f4f4f2;
+  --c-pre-bg: #f7f7f5;
+  --c-pre-text: #1a1a1a;
+  --c-pre-border: #e3e3df;
 }
 
 /* systémová tmavá, pokud uživatel ručně nepřepnul */
@@ -31,6 +35,9 @@
     --c-link-visited: #c5a8ff;
     --c-panel: #1f1f24;
     --c-code-bg: #2a2a30;
+    --c-pre-bg: #2b303b;
+    --c-pre-text: #c0c5ce;
+    --c-pre-border: #4c4c50;
   }
 }
 /* systémová světlá + ruční přepnutí do tmavé (stejné hodnoty jako výše) */
@@ -46,6 +53,9 @@
     --c-link-visited: #c5a8ff;
     --c-panel: #1f1f24;
     --c-code-bg: #2a2a30;
+    --c-pre-bg: #2b303b;
+    --c-pre-text: #c0c5ce;
+    --c-pre-border: #4c4c50;
   }
 }
 
@@ -196,10 +206,11 @@ code {
   border-radius: 3px;
 }
 pre {
-  /* záměrně napevno světlé i v tmavém režimu (syntect barvy) */
-  background: #f7f7f5;
-  color: #1a1a1a;
-  border: 1px solid #e3e3df;
+  /* světlé téma (InspiredGitHub) default; tmavý režim přepíná tokeny
+     a scopované tmavé syntect CSS (syntax_dark_css v render.rs) */
+  background: var(--c-pre-bg);
+  color: var(--c-pre-text);
+  border: 1px solid var(--c-pre-border);
   border-radius: 4px;
   padding: 0.8em 1em;
   overflow-x: auto;

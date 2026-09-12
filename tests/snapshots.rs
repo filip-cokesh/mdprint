@@ -159,6 +159,13 @@ fn plna_stranka_ma_styly_a_fonty() {
     // tmavý režim: jen pro screen, s CSS-only přepínačem; tisk ho skrývá
     assert!(html.contains("@media screen and (prefers-color-scheme: dark)"));
     assert!(html.contains("id=\"theme-invert\""));
+    // tmavé téma kódu: scopované na tmavý režim (CSS nesting), tisk světlý
+    assert!(
+        html.contains(
+            "html:not(:has(#theme-invert:checked)) {\n/*\n * theme \"Base16 Ocean Dark\""
+        )
+    );
+    assert!(html.contains("html:has(#theme-invert:checked) {\n/*\n * theme \"Base16 Ocean Dark\""));
     // přepínač velikosti písma: tři radia, škálování screen i print,
     // oba přepínače se v tisku skrývají
     assert!(html.contains("id=\"fs-normal\" checked"));

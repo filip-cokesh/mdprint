@@ -58,8 +58,8 @@ print it from Chrome, or publish it as-is.
   line-break display math, so in print mdprint allows breaks at top-level
   operators and shrinks over-wide formulas in steps so nothing gets
   clipped; for full control use `aligned`/`split` with explicit `\\`
-- **Syntax highlighting** — static `<span>`s (syntect), light theme suited
-  for print
+- **Syntax highlighting** — static `<span>`s (syntect); light theme on
+  screen and in print, a dark theme (Base16 Ocean Dark) in dark mode
 - **Czech, German and English typography** applied on the AST — see below
 - **Hyphenation** with embedded Czech, German and English patterns (soft
   hyphens, words ≥ 6 chars, ≥ 3 chars around each break, headings exempt)

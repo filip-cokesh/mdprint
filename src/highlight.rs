@@ -9,6 +9,8 @@ use syntect::parsing::SyntaxSet;
 use syntect::util::LinesWithEndings;
 
 const THEME: &str = "InspiredGitHub";
+/// Tmavé téma pro obrazovkový tmavý režim (tisk zůstává u světlého).
+const DARK_THEME: &str = "base16-ocean.dark";
 const CLASS_STYLE: ClassStyle = ClassStyle::Spaced;
 
 pub struct Highlighter {
@@ -22,14 +24,14 @@ impl Highlighter {
         }
     }
 
-    /// CSS tříd zvýraznění (jedno světlé téma vhodné i pro tisk).
+    /// CSS tříd zvýraznění — světlé téma (default a tisk).
     pub fn css() -> Result<String> {
-        let themes = syntect::highlighting::ThemeSet::load_defaults();
-        let theme = themes
-            .themes
-            .get(THEME)
-            .with_context(|| format!("téma {THEME} není v syntect defaults"))?;
-        css_for_theme_with_class_style(theme, CLASS_STYLE).context("generování CSS tématu selhalo")
+        theme_css(THEME)
+    }
+
+    /// CSS tříd zvýraznění — tmavé téma (render ho scopuje na tmavý režim).
+    pub fn css_dark() -> Result<String> {
+        theme_css(DARK_THEME)
     }
 
     /// Nahradí fenced code blocky zvýrazněným HTML. Neznámý jazyk → prostý
@@ -87,6 +89,15 @@ impl Default for Highlighter {
     fn default() -> Self {
         Self::new()
     }
+}
+
+fn theme_css(name: &str) -> Result<String> {
+    let themes = syntect::highlighting::ThemeSet::load_defaults();
+    let theme = themes
+        .themes
+        .get(name)
+        .with_context(|| format!("téma {name} není v syntect defaults"))?;
+    css_for_theme_with_class_style(theme, CLASS_STYLE).context("generování CSS tématu selhalo")
 }
 
 /// Zabalí každý řádek do `<span class="line">…</span>`. Spany syntectu mohou
@@ -198,6 +209,11 @@ mod tests {
     fn theme_css_generates() {
         let css = Highlighter::css().unwrap();
         assert!(css.contains(".source"));
+        let dark = Highlighter::css_dark().unwrap();
+        // base16 témata scopují přes .code (ne .source jako InspiredGitHub)
+        assert!(dark.contains(".code"));
+        assert!(dark.contains(".comment"));
+        assert_ne!(css, dark, "tmavé téma musí být odlišné od světlého");
     }
 
     #[test]
