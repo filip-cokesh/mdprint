@@ -290,6 +290,62 @@ mod tests {
         );
     }
 
+    /// Regrese 02-10-26: vložené katex.css musí odpovídat třídám, které
+    /// generuje katex-rs. Nesoulad (CSS z KaTeX 0.18 s prefixovanými třídami
+    /// `.katex-sizing`, `.katex-strut`…, ale katex-rs 0.2 s třídami bez
+    /// prefixu) způsobil, že se indexy nezmenšovaly, zlomky se překrývaly
+    /// a šipky `\vec` ujížděly. Při upgradu katex-rs nebo CSS hlídá paritu.
+    #[test]
+    fn katex_css_matches_emitted_classes() {
+        let arena = Arena::new();
+        let root = parse::parse(
+            &arena,
+            r"$\Delta \vec N$
+
+$$\lim_{x \to 0} \frac{a^2}{b_c}$$
+",
+            &parse::options(),
+        );
+        MathRenderer::new().render_all(root).unwrap();
+        let mut html = String::new();
+        for node in root.descendants() {
+            if let NodeValue::HtmlInline(h) = &node.data.borrow().value {
+                html.push_str(h);
+            }
+        }
+        let emitted: std::collections::HashSet<&str> = html
+            .split("class=\"")
+            .skip(1)
+            .filter_map(|s| s.split('"').next())
+            .flat_map(str::split_whitespace)
+            .collect();
+        let css = crate::assets::KATEX_CSS;
+        let has_rule = |cls: &str| {
+            let sel = format!(".{cls}");
+            css.match_indices(&sel).any(|(i, _)| {
+                !css[i + sel.len()..].starts_with(|c: char| c.is_alphanumeric() || c == '-')
+            })
+        };
+        for cls in [
+            "katex-base",
+            "katex-strut",
+            "katex-sizing",
+            "reset-size6",
+            "katex-accent",
+            "accent-body",
+            "katex-overlay",
+            "vlist",
+            "pstrut",
+            "frac-line",
+        ] {
+            assert!(
+                emitted.contains(cls),
+                "katex-rs už negeneruje třídu {cls} — aktualizovat test"
+            );
+            assert!(has_rule(cls), "katex.css nemá pravidlo pro .{cls}");
+        }
+    }
+
     #[test]
     fn invalid_tex_fails_with_line() {
         let arena = Arena::new();

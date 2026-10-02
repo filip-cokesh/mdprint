@@ -1,6 +1,6 @@
 [package]
 name = "mdprint"
-version = "0.7.0"
+version = "0.7.1"
 edition = "2024"
 rust-version = "1.88"
 description = "Markdown → print-quality self-contained HTML. One static binary with Czech typography, KaTeX math and syntax highlighting."
@@ -33,7 +33,7 @@ serde_json = "1"
 serde_yaml = "0.9"
 thiserror = "2"
 toml = "0.9"
-katex-rs = "0.2.4"
+katex-rs = "0.3.0"
 syntect = { version = "5.3.0", default-features = false, features = ["default-fancy"] }
 fancy-regex = "0.19.0"
 hyphenation = { version = "0.8.4", features = ["embed_all"] }

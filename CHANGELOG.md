@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.7.1] - 2026-10-02
+
+### Fixed
+- **Broken math layout**: fractions, sub/superscripts, limits and `\vec`
+  arrows overlapped or were misplaced, because the embedded KaTeX 0.18 CSS
+  uses prefixed class names (`.katex-sizing`, `.katex-strut`, …) that the
+  katex-rs 0.2 renderer did not emit. A regression test now checks that
+  every layout-critical class emitted by the renderer has a CSS rule
+
+### Changed
+- Math renderer upgraded to katex-rs 0.3.0, which matches KaTeX 0.18
+  (embedded CSS and fonts stay at KaTeX 0.18.5)
+
 ## [0.7.0] - 2026-09-12
 
 ### Added

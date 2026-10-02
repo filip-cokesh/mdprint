@@ -9,7 +9,8 @@ pub const SCREEN_CSS: &str = include_str!("../assets/screen.css");
 pub const PRINT_CSS: &str = include_str!("../assets/print.css");
 
 /// KaTeX 0.18.5 CSS s odstraněnými `@font-face` bloky (nahrazují je inlinované
-/// WOFF2 z `katex_fonts_css`).
+/// WOFF2 z `katex_fonts_css`). Verze musí odpovídat katex-rs (0.3 = prefixované
+/// třídy `katex-*`); paritu hlídá test `math::katex_css_matches_emitted_classes`.
 pub const KATEX_CSS: &str = include_str!("../assets/katex.css");
 
 /// PNG jako data URI pro `<img src>`.
