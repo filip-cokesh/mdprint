@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result};
 use serde::Deserialize;
 
-use crate::cli::{Cli, Lang};
+use crate::cli::{Cli, FontSize, Lang, PdfMode};
 use crate::parse::FrontMatter;
 
 /// `mdprint.toml` vedle vstupu (nebo `--config`). Všechna pole volitelná.
@@ -17,7 +17,22 @@ pub struct FileConfig {
     pub figures: Option<Figures>,
     pub fonts: Option<Fonts>,
     pub math: Option<Math>,
+    pub print: Option<Print>,
     pub company: Option<Company>,
+}
+
+/// Tisk (`[print]`): číslování stránek, čísla v obsahu, výchozí velikost písma.
+#[derive(Deserialize, Default, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct Print {
+    /// Číslo stránky „3 / 8“ v patičce tisku (výchozí true)
+    pub page_numbers: Option<bool>,
+    /// Čísla stran v obsahu (výchozí false; vyžaduje Chrome/Edge)
+    pub toc_pages: Option<bool>,
+    /// small | normal | large (výchozí normal)
+    pub font_size: Option<FontSize>,
+    /// Cesta k prohlížeči (relativně k tomuto tomlu)
+    pub browser: Option<PathBuf>,
 }
 
 /// Velikost matematiky (`[math]`), v em vůči okolnímu textu.
@@ -88,6 +103,16 @@ pub struct Config {
     /// `[company]` z mdprint.toml (přebíjí defaulty z pack.toml).
     pub company: Company,
     pub toc: bool,
+    /// Čísla stran v obsahu (implikuje `toc`).
+    pub toc_pages: bool,
+    /// Číslo stránky v patičce tisku.
+    pub page_numbers: bool,
+    /// Výchozí velikost písma (radio v HTML, velikost jednoho PDF).
+    pub font_size: FontSize,
+    /// Výstup do PDF (`None` = jen HTML).
+    pub pdf: Option<PdfMode>,
+    /// Prohlížeč zadaný uživatelem (CLI > MDPRINT_BROWSER > toml).
+    pub browser: Option<PathBuf>,
     pub fetch: bool,
 }
 
@@ -118,7 +143,7 @@ impl Config {
                     .and_then(|fm| fm.template.clone())
                     .map(|t| (t, input_dir.to_path_buf()))
             })
-            .or_else(|| file_cfg.template.map(|t| (t, config_dir)));
+            .or_else(|| file_cfg.template.map(|t| (t, config_dir.clone())));
         let pack_dir = match template_choice {
             None => None,
             Some((t, _)) if t == "default" => None,
@@ -133,6 +158,35 @@ impl Config {
         };
 
         let company = file_cfg.company.unwrap_or_default();
+
+        let print = file_cfg.print.unwrap_or_default();
+        let fm = |f: fn(&FrontMatter) -> Option<bool>| front_matter.and_then(f);
+        let toc_pages = cli.toc_pages || fm(|f| f.toc_pages).or(print.toc_pages).unwrap_or(false);
+        let page_numbers = if cli.no_page_numbers {
+            false
+        } else {
+            fm(|f| f.page_numbers)
+                .or(print.page_numbers)
+                .unwrap_or(true)
+        };
+        let font_size = cli
+            .font_size
+            .or_else(|| front_matter.and_then(|f| f.font_size))
+            .or(print.font_size)
+            .unwrap_or_default();
+        let browser = cli
+            .browser
+            .clone()
+            .or_else(|| std::env::var_os("MDPRINT_BROWSER").map(PathBuf::from))
+            .or_else(|| {
+                print.browser.map(|b| {
+                    if b.is_absolute() {
+                        b
+                    } else {
+                        config_dir.join(b)
+                    }
+                })
+            });
 
         let paper = file_cfg.paper.unwrap_or_default();
         let figures = file_cfg.figures.unwrap_or_default();
@@ -169,7 +223,12 @@ impl Config {
             math_display,
             pack_dir,
             company,
-            toc: cli.toc,
+            toc: cli.toc || toc_pages,
+            toc_pages,
+            page_numbers,
+            font_size,
+            pdf: cli.pdf,
+            browser,
             fetch: cli.fetch,
         })
     }

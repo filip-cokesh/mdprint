@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.8.0] - 2026-10-04
+
+### Added
+- **Page numbers in print**: "3 / 8" bottom right on every page (CSS
+  `@page` margin box, Chrome/Edge 131+). On by default; turn off with
+  `--no-page-numbers` or `page_numbers = false`
+- **Page references in the table of contents** (`--toc-pages`): the
+  document is laid out in headless Chrome/Edge in all three font sizes,
+  the page of every heading is read from the PDF's named destinations
+  and written into the TOC with dot leaders. Print shows the set that
+  matches the selected font size. Without a browser mdprint warns and
+  keeps the TOC without numbers
+- **PDF export**: `--pdf` writes `<name>.pdf` next to the HTML in the
+  configured font size, `--pdf=all` writes one PDF per font size
+- **Initial font size**: `--font-size`, `font_size` in front matter or
+  `[print]` sets which A/A/A option starts selected (and the `--pdf` size)
+- `[print]` section in `mdprint.toml` (`page_numbers`, `toc_pages`,
+  `font_size`, `browser`); browser path also via `--browser` or
+  `MDPRINT_BROWSER`
+
 ## [0.7.1] - 2026-10-02
 
 ### Fixed

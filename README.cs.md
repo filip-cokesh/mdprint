@@ -13,7 +13,12 @@ tabulkami, kódem, obrázky, typografií a tmavým režimem:
 [čeština](https://filip-cokesh.github.io/mdprint/) ·
 [English](https://filip-cokesh.github.io/mdprint/en.html) ·
 [Deutsch](https://filip-cokesh.github.io/mdprint/de.html).
-Zkuste i tisk (Ctrl+P).
+Zkuste i tisk (Ctrl+P), nebo rovnou **vytištěná PDF** s číslováním stránek
+a obsahem s čísly stran (`mdprint --toc-pages --pdf=all`):
+[CS](https://filip-cokesh.github.io/mdprint/doc-cs-normal.pdf) ·
+[EN](https://filip-cokesh.github.io/mdprint/doc-en-normal.pdf) ·
+[DE](https://filip-cokesh.github.io/mdprint/doc-de-normal.pdf)
+(i v malém a velkém písmu, odkazy jsou na demostránkách).
 
 ## Proč
 
@@ -46,8 +51,8 @@ z Chromu, nebo rovnou zveřejníš.
 
 ## Co umí
 
-- **jedna statická binárka** — žádné runtime závislosti, žádný JavaScript ve
-  výstupu, fonty (Libertinus, JetBrains Mono) embedované jako WOFF2
+- **jedna statická binárka** — žádné runtime závislosti (Chrome/Edge jen
+  pro volitelné `--pdf` a `--toc-pages`), žádný JavaScript ve výstupu, fonty (Libertinus, JetBrains Mono) embedované jako WOFF2
 - **KaTeX matematika** při buildu (`$…$`, `$$…$$`) — nativní Rust port;
   chybný TeX = chyba buildu s číslem řádku. KaTeX neumí display math lámat,
   proto mdprint v tisku povolí zlom na top-level operátorech a příliš
@@ -63,9 +68,14 @@ z Chromu, nebo rovnou zveřejníš.
   “uvozovkami” a apostrofy (`don't` → `don’t`); kódu, matematiky a URL se
   nedotýká
 - **dělení slov** měkkými rozdělovníky (vzory cs/de/en embedované)
-- **tiskové CSS** — A4, orphans/widows, opakování hlavičky tabulky přes
-  stránky, nedělené figury, zalamování dlouhých řádků kódu s visutou
-  indentací, URL za externími odkazy
+- **tiskové CSS** — A4, číslo stránky „3 / 8“ v patičce, orphans/widows,
+  opakování hlavičky tabulky přes stránky, nedělené figury, zalamování
+  dlouhých řádků kódu s visutou indentací, URL za externími odkazy
+- **čísla stran v obsahu** (`--toc-pages`) — mdprint dokument vysází
+  v headless Chrome/Edge ve všech třech velikostech písma, z PDF přečte
+  stránku každého nadpisu a čísla zapíše do obsahu; tisk použije sadu
+  podle zvolené velikosti písma
+- **export do PDF** (`--pdf`, `--pdf=all`) přes stejný headless prohlížeč
 - **obrázky** — cesty relativně ke vstupu, kopie `<slug>-<hash>`, úklid řízený
   manifestem (nikdy se nemaže nic cizího), `--fetch` s diskovou cache
 - **tmavý režim a velikost písma bez JavaScriptu** — tmavý režim dle
@@ -84,6 +94,9 @@ author: Jméno Autora
 date: 2026-09-02
 version: "1.2"
 lang: cs
+font_size: normal     # small | normal | large — výchozí A/A/A i velikost pro --pdf
+page_numbers: true    # číslo stránky v tisku (výchozí zapnuto)
+toc_pages: false      # čísla stran v obsahu (zapne i obsah)
 ---
 ```
 
@@ -97,8 +110,25 @@ Viz okomentovaný příklad v [README.md](README.md#configuration) — klíče:
 `lang`, `template`, `[paper]` (size, margin), `[figures]` (prefix,
 numbering), `[fonts]` (serif, sans, mono), `[math]` (inline, display —
 velikost matematiky v em, rozsah 0,5–2,0; zmenšování širokých vzorců
-pro tisk se přizpůsobí), `[company]` (patička brandované šablony).
+pro tisk se přizpůsobí), `[print]` (page_numbers, toc_pages, font_size,
+browser), `[company]` (patička brandované šablony).
 CLI přepínače konfiguraci přebíjejí.
+
+## Číslování stránek a čísla v obsahu
+
+- Číslo stránky v patičce je CSS margin box `@page`: tisknou ho Chrome
+  a Edge 131+, Safari a Firefox ho zatím vynechají (nic se nerozbije).
+  Vypnutí: `--no-page-numbers` nebo `page_numbers = false`.
+- Čísla v obsahu (`--toc-pages`) se měří, ne odhadují: tři headless rendery
+  (jeden na velikost písma) trvají pár sekund. Jsou přesná pro tisk
+  z Chrome/Edge s formátem a okraji dokumentu při měřítku 100 %; jiný
+  prohlížeč nebo změna měřítka v dialogu je může posunout. Výstup `--pdf`
+  sedí vždy.
+- V dialogu tisku vypněte *Záhlaví a zápatí* prohlížeče — Chrome pak
+  patičku přenechá mdprintu.
+- Prohlížeč se hledá automaticky (Chrome, Edge, Chromium), jinak
+  `--browser <cesta>` nebo proměnná `MDPRINT_BROWSER`. Bez něj
+  `--toc-pages` jen varuje a obsah zůstane bez čísel; `--pdf` skončí chybou.
 
 ## Template packy
 

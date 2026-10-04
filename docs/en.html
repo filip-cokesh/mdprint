@@ -13,7 +13,9 @@ header { max-width:1600px; margin:0 auto; padding:1.1rem 1.5rem 0.4rem; display:
 h1 { font-size:1.6rem; margin:0; }
 nav a { color:inherit; margin-right:.6rem; text-decoration:none; opacity:.65; }
 nav a.active { font-weight:700; opacity:1; text-decoration:underline; }
-.open { margin-left:auto; font-size:.9rem; color:inherit; }
+.pdf { margin-left:auto; font-size:.9rem; color:var(--muted); }
+.pdf a { color:inherit; margin-left:.35rem; }
+.open { font-size:.9rem; color:inherit; }
 main { max-width:1600px; margin:0 auto; padding:.6rem 1.5rem 1rem; display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
 @media (max-width: 900px) { main { grid-template-columns:1fr; } }
 section { border:1px solid var(--border); border-radius:6px; overflow:hidden; display:flex; flex-direction:column; height:85vh; }
@@ -30,6 +32,7 @@ footer a { color:inherit; }
 <nav><a href="index.html">CS</a>
 <a href="en.html" class="active">EN</a>
 <a href="de.html">DE</a></nav>
+<span class="pdf">printed PDF: <a href="doc-en-small.pdf">small</a> ·<a href="doc-en-normal.pdf">normal</a> ·<a href="doc-en-large.pdf">large</a></span>
 <a class="open" href="doc-en.html">open the result standalone (print) ↗</a>
 </header>
 <main>
@@ -217,6 +220,6 @@ Serviceability limit state
 <iframe src="doc-en.html" title="mdprint output"></iframe>
 </section>
 </main>
-<footer>mdprint --toc beam-deflection.md · <a href="https://github.com/filip-cokesh/mdprint">github.com/filip-cokesh/mdprint</a> · <a href="https://crates.io/crates/mdprint">crates.io/crates/mdprint</a></footer>
+<footer>mdprint --toc-pages --pdf=all beam-deflection.md · <a href="https://github.com/filip-cokesh/mdprint">github.com/filip-cokesh/mdprint</a> · <a href="https://crates.io/crates/mdprint">crates.io/crates/mdprint</a></footer>
 </body>
 </html>

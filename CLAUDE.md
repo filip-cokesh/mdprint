@@ -22,7 +22,8 @@ Limit velikosti release binárky: **20 MB**.
 → `parse` (comrak AST; extensions: table, footnotes, description_lists,
 math_dollars, front_matter `---`, header_id_prefix; `render.unsafe` zapnuté kvůli
 HTML z math/highlight) → transformace AST v pořadí **typo → hyphen → math →
-highlight → images** → `render` (vlastní formatter → HTML → minijinja šablona).
+highlight → images** → `render` (vlastní formatter → HTML → minijinja šablona)
+→ volitelně `paginate` (čísla stran do obsahu, PDF).
 
 - `cli.rs` — clap derive; `--template` = "default" nebo cesta k packu
 - `config.rs` — `FileConfig` (mdprint.toml, deny_unknown_fields) → `Config`;
@@ -53,6 +54,12 @@ highlight → images** → `render` (vlastní formatter → HTML → minijinja �
 - `render.rs` — `create_formatter!` (figure/figcaption „Obr. N"), minijinja
   šablona (brand hlavička/patička `.brand-*` při aktivním packu), TOC přes
   comrak `Anchorizer`, české datum s U+00A0
+- `paginate.rs` — headless Chrome/Edge (`std::process::Command`, vlastní
+  `--user-data-dir`): `--toc-pages` = 3 sondy (radio `fs-*` přepnuté přes
+  `with_font_size`, obsah se zástupným „000“ pevné šířky 3ch → stejný layout),
+  čísla z PDF `/Dests` (lopdf, klíče procentově kódované id kotev); `--pdf`
+  tiskne finální HTML. Sondy jsou skryté soubory vedle výstupu (relativní
+  `img_*`; `<base>` nejde — rozbil by `#kotvy` v PDF), mažou se v `Drop`
 - `assets.rs` — `include_str!`/`include_bytes!` všeho vestavěného; fonty
   Libertinus + JetBrains Mono + KaTeX jako base64 `@font-face`
 

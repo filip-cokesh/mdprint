@@ -6,6 +6,7 @@ pub mod hyphen;
 pub mod images;
 pub mod math;
 pub mod pack;
+pub mod paginate;
 pub mod parse;
 pub mod render;
 pub mod typo;
@@ -19,8 +20,21 @@ use comrak::Arena;
 use cli::Cli;
 use config::Config;
 
+/// Výsledek běhu: zapsané HTML, případná PDF a varování (nefatální).
+#[derive(Debug, Default)]
+pub struct RunOutput {
+    pub html: PathBuf,
+    pub pdfs: Vec<PathBuf>,
+    pub warnings: Vec<String>,
+}
+
 /// Celý běh: MD → AST → obrázky → HTML. Vrací cestu k zapsanému HTML.
 pub fn run(cli: &Cli) -> Result<PathBuf> {
+    run_full(cli).map(|o| o.html)
+}
+
+/// Celý běh včetně čísel stran v obsahu (`--toc-pages`) a PDF (`--pdf`).
+pub fn run_full(cli: &Cli) -> Result<RunOutput> {
     anyhow::ensure!(
         cli.input.is_file(),
         "vstupní soubor nenalezen: {}",
@@ -79,11 +93,17 @@ pub fn run(cli: &Cli) -> Result<PathBuf> {
         .transpose()?;
 
     let title = parse::document_title(front_matter.as_ref(), root, &stem);
-    let toc = if cfg.toc {
-        render::build_toc(root, cfg.lang)
+    let toc_entries = if cfg.toc {
+        render::toc_entries(root)
     } else {
-        None
+        Vec::new()
     };
+    let toc_mode = if cfg.toc_pages {
+        render::TocPages::Placeholder
+    } else {
+        render::TocPages::Off
+    };
+    let toc = render::render_toc(&toc_entries, cfg.lang, toc_mode);
     let body = render::body_html(root, &opts, &cfg)?;
     let page = render::page_html(
         &title,
@@ -96,6 +116,45 @@ pub fn run(cli: &Cli) -> Result<PathBuf> {
 
     fs::create_dir_all(&out_dir)
         .with_context(|| format!("nelze vytvořit {}", out_dir.display()))?;
-    fs::write(&out_html, page).with_context(|| format!("nelze zapsat {}", out_html.display()))?;
-    Ok(out_html)
+
+    let mut warnings = Vec::new();
+    let mut page = page;
+    // čísla stran v obsahu: tři sondy se zástupnými čísly → doplnit čísla;
+    // při selhání obsah bez čísel (HTML je i tak použitelné) + varování
+    if let (true, Some(placeholder_toc)) = (cfg.toc_pages, toc.as_deref()) {
+        let measured = paginate::find_browser(cfg.browser.as_deref())
+            .and_then(|b| paginate::measure(&b, &page, &out_dir, &stem));
+        let final_toc = match &measured {
+            Ok(map) => render::render_toc(&toc_entries, cfg.lang, render::TocPages::Numbers(map)),
+            Err(e) => {
+                warnings.push(format!("čísla stran v obsahu vynechána: {e:#}"));
+                render::render_toc(&toc_entries, cfg.lang, render::TocPages::Off)
+            }
+        }
+        .expect("obsah má položky");
+        page = page.replacen(placeholder_toc, &final_toc, 1);
+    }
+
+    fs::write(&out_html, &page).with_context(|| format!("nelze zapsat {}", out_html.display()))?;
+
+    let mut pdfs = Vec::new();
+    if let Some(mode) = cfg.pdf {
+        let browser = paginate::find_browser(cfg.browser.as_deref())
+            .context("--pdf vyžaduje Chrome nebo Edge")?;
+        let sizes: Vec<cli::FontSize> = match mode {
+            cli::PdfMode::One => vec![cfg.font_size],
+            cli::PdfMode::All => cli::FontSize::ALL.to_vec(),
+        };
+        let pdf_for = |size: cli::FontSize| match mode {
+            cli::PdfMode::One => out_html.with_extension("pdf"),
+            cli::PdfMode::All => out_dir.join(format!("{stem}-{}.pdf", size.name())),
+        };
+        pdfs = paginate::export_pdfs(&browser, &out_html, &page, cfg.font_size, &sizes, pdf_for)?;
+    }
+
+    Ok(RunOutput {
+        html: out_html,
+        pdfs,
+        warnings,
+    })
 }

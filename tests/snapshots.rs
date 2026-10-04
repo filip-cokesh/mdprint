@@ -21,6 +21,7 @@ fn build_fixture(name: &str, md_file: &str, template: Option<String>, toc: bool)
         fetch: false,
         config: None,
         template,
+        ..Default::default()
     };
     let out = mdprint::run(&cli).unwrap();
     let html = fs::read_to_string(out).unwrap();
@@ -141,6 +142,7 @@ fn plna_stranka_ma_styly_a_fonty() {
         fetch: false,
         config: None,
         template: None,
+        ..Default::default()
     };
     let out = mdprint::run(&cli).unwrap();
     let html = fs::read_to_string(out).unwrap();

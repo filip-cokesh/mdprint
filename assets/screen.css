@@ -296,6 +296,8 @@ nav.toc li::before {
 }
 nav.toc a { text-decoration: none; color: inherit; }
 nav.toc a:hover { text-decoration: underline; }
+/* čísla stran (--toc-pages) dávají smysl jen v tisku — print.css je zobrazí */
+nav.toc .toc-leader, nav.toc .toc-page { display: none; }
 
 /* ---- doladění KaTeX vůči Libertinusu ----
    KaTeX default 1.21em je kalibrovaný na jiné poměry; x-výšky KaTeX_Main

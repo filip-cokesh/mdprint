@@ -1,10 +1,20 @@
 /* ===== print.css — tisk z Chromu (Ctrl+P) =====
-   Číslování stránek je mimo rozsah v1; stránkový rám drží @page,
-   případný Paged.js se později přidá jako samostatná vrstva nad tímto CSS. */
+   Stránkový rám drží @page; číslo stránky je margin box (Chrome/Edge 131+,
+   Safari a Firefox ho zatím ignorují — nic se nerozbije). */
 
 @page {
   size: {{ page_size }};
   margin: {{ page_margin }};
+{%- if page_numbers %}
+  @bottom-right {
+    content: counter(page) "\2009/\2009" counter(pages);
+    font-family: 'Libertinus Sans', 'Segoe UI', Arial, sans-serif;
+    font-size: 9pt;
+    font-variant-numeric: tabular-nums;
+    color: #555;
+    vertical-align: middle;
+  }
+{%- endif %}
 }
 
 @media print {
@@ -91,6 +101,34 @@
     color: #333;
     overflow-wrap: anywhere;
   }
+  /* obsah s čísly stran (--toc-pages): číslo podle zvolené velikosti
+     písma, vodicí tečky flexem (leader() Chrome neumí). Číslo má pevnou
+     šířku 3ch → sonda se zástupným „000“ má stejný layout jako výsledek. */
+  nav.toc.toc-pages li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 0.45em;
+  }
+  nav.toc.toc-pages li > ol { grid-column: 1 / -1; }
+  nav.toc.toc-pages a { display: flex; align-items: baseline; }
+  nav.toc.toc-pages .toc-leader {
+    display: block;
+    flex: 1 1 1em;
+    min-width: 1em;
+    margin: 0 0.3em;
+    border-bottom: 1px dotted #888;
+  }
+  nav.toc.toc-pages .toc-page {
+    display: block;
+    flex: none;
+    min-width: 3ch;
+    text-align: right;
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+  nav.toc .toc-page::after { content: attr(data-m); }
+  html:has(#fs-small:checked) nav.toc .toc-page::after { content: attr(data-s); }
+  html:has(#fs-large:checked) nav.toc .toc-page::after { content: attr(data-l); }
+
   /* … ale ne u interních kotev a poznámek pod čarou */
   a.anchor::after, .footnote-ref a::after, a.footnote-backref::after { content: none; }
 }

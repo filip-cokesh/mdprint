@@ -17,7 +17,12 @@ tables, code, figures, typography and dark mode:
 [čeština](https://filip-cokesh.github.io/mdprint/) ·
 [English](https://filip-cokesh.github.io/mdprint/en.html) ·
 [Deutsch](https://filip-cokesh.github.io/mdprint/de.html).
-Try printing them (Ctrl+P).
+Try printing them (Ctrl+P), or open the **printed PDFs** with page numbers
+and a table of contents with page references (`mdprint --toc-pages --pdf=all`):
+[CS](https://filip-cokesh.github.io/mdprint/doc-cs-normal.pdf) ·
+[EN](https://filip-cokesh.github.io/mdprint/doc-en-normal.pdf) ·
+[DE](https://filip-cokesh.github.io/mdprint/doc-de-normal.pdf)
+(also in small and large type, linked from the demo pages).
 
 ## Why
 
@@ -51,8 +56,8 @@ print it from Chrome, or publish it as-is.
 
 ## Features
 
-- **Single static binary** — no runtime dependencies, no JavaScript in the
-  output, fonts (Libertinus, JetBrains Mono) embedded as WOFF2
+- **Single static binary** — no runtime dependencies (a Chrome/Edge only
+  for the optional `--pdf` and `--toc-pages`), no JavaScript in the output, fonts (Libertinus, JetBrains Mono) embedded as WOFF2
 - **KaTeX math** rendered at build time (`$…$`, `$$…$$`) via a native Rust
   port — invalid TeX fails the build with a line number. KaTeX cannot
   line-break display math, so in print mdprint allows breaks at top-level
@@ -63,9 +68,15 @@ print it from Chrome, or publish it as-is.
 - **Czech, German and English typography** applied on the AST — see below
 - **Hyphenation** with embedded Czech, German and English patterns (soft
   hyphens, words ≥ 6 chars, ≥ 3 chars around each break, headings exempt)
-- **Print CSS** — A4 page setup, orphans/widows control, table headers
-  repeated across pages, unbreakable figures and table rows, long code lines
-  wrapped with hanging indent, URLs printed after external links
+- **Print CSS** — A4 page setup, page numbers „3 / 8“ in the footer,
+  orphans/widows control, table headers repeated across pages, unbreakable
+  figures and table rows, long code lines wrapped with hanging indent, URLs
+  printed after external links
+- **Page references in the table of contents** (`--toc-pages`) — mdprint
+  lays the document out in headless Chrome/Edge in all three font sizes,
+  reads the page of every heading from the PDF and writes the numbers into
+  the TOC; print picks the set matching the font size you chose
+- **PDF export** (`--pdf`, `--pdf=all`) through the same headless browser
 - **Image handling** — paths resolved relative to the input, copies named
   `<slug>-<hash>`, cleanup driven by a manifest (mdprint never deletes
   anything it didn't create), optional `--fetch` for remote images with
@@ -142,6 +153,12 @@ serif = "Libertinus Serif"
 sans = "Libertinus Sans"
 mono = "JetBrains Mono"
 
+[print]
+page_numbers = true             # "3 / 8" bottom right (Chrome/Edge 131+)
+toc_pages = false               # page numbers in the TOC (needs Chrome/Edge)
+font_size = "normal"            # small | normal | large: initial A/A/A and --pdf size
+browser = "C:/path/chrome.exe"  # optional; else MDPRINT_BROWSER or auto-detect
+
 [math]                          # math size in em relative to surrounding text
 inline = 0.95                   # allowed range 0.5–2.0; defaults calibrated
 display = 1.0                   # for Libertinus (page-fit shrink adapts)
@@ -156,7 +173,7 @@ email = "…"
 ```
 
 Documents may carry YAML front matter (`title`, `author`, `date`, `version`,
-`lang`, `template`) — `title` renders a document header, ISO dates are
+`lang`, `template`, `page_numbers`, `toc_pages`, `font_size`) — `title` renders a document header, ISO dates are
 typeset the Czech way (`2. 9. 2026`), `version` shows in the byline.
 
 A **template pack** is a folder with `pack.toml`, `template.css` and optional
@@ -181,6 +198,14 @@ Options:
   -o, --output <OUTPUT>      Output HTML file (default: next to input, .html)
       --lang <LANG>          Document language [possible values: cs, en, de]
       --toc                  Generate a table of contents (headings 1-3)
+      --toc-pages            Add print page numbers to the TOC (implies --toc;
+                             needs Chrome or Edge)
+      --font-size <SIZE>     Initial font size: small | normal | large
+      --no-page-numbers      No page numbers in print
+      --pdf[=all]            Also write PDF (all = one per font size;
+                             needs Chrome or Edge)
+      --browser <PATH>       Browser for --pdf/--toc-pages (else
+                             MDPRINT_BROWSER or auto-detect)
       --fetch                Download remote images (with a disk cache)
       --config <CONFIG>      Config path (default: mdprint.toml next to input)
       --template <TEMPLATE>  "default" or path to a template pack folder
@@ -190,6 +215,20 @@ Options:
 
 Exit code is non-zero on any error; missing images and invalid TeX report
 the source line.
+
+### Page numbers — what to expect
+
+- The footer number is a CSS `@page` margin box: Chrome and Edge 131+ print
+  it, Safari and Firefox currently omit it (nothing breaks).
+- TOC page numbers are measured, not estimated: three headless renders (one
+  per font size) take a few seconds. They are exact for printing from
+  Chrome/Edge with the document's paper size and margins at 100 % scale.
+  Another browser or a changed scale in the print dialog may shift them;
+  `--pdf` output always matches.
+- Turn off the browser's own *Headers and footers* in the print dialog —
+  Chrome then leaves the footer to mdprint.
+- Without a browser, `--toc-pages` warns and writes the TOC without numbers;
+  `--pdf` fails. Everything else still needs no runtime dependency.
 
 ## Build from source
 

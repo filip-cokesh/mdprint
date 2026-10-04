@@ -4,7 +4,7 @@ use clap::{Parser, ValueEnum};
 use serde::Deserialize;
 
 /// Převodník Markdown → tiskově kvalitní HTML (jedna binárka, vše inlinované kromě obrázků).
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Default)]
 #[command(name = "mdprint", version, about)]
 pub struct Cli {
     /// Vstupní Markdown soubor
@@ -21,6 +21,29 @@ pub struct Cli {
     /// Vygenerovat obsah (TOC) za hlavičku dokumentu
     #[arg(long)]
     pub toc: bool,
+
+    /// Doplnit do obsahu čísla stran pro tisk (zapíná --toc; vyžaduje
+    /// Chrome nebo Edge, stránkování změří ve třech velikostech písma)
+    #[arg(long)]
+    pub toc_pages: bool,
+
+    /// Výchozí velikost písma (přepínač A/A/A v HTML i velikost v --pdf)
+    #[arg(long, value_enum)]
+    pub font_size: Option<FontSize>,
+
+    /// Nečíslovat stránky v tisku
+    #[arg(long)]
+    pub no_page_numbers: bool,
+
+    /// Uložit i PDF vedle HTML (vyžaduje Chrome nebo Edge);
+    /// `--pdf=all` uloží tři PDF, pro každou velikost písma jedno
+    #[arg(long, value_enum, num_args = 0..=1, require_equals = true, default_missing_value = "one")]
+    pub pdf: Option<PdfMode>,
+
+    /// Cesta k prohlížeči pro --pdf a --toc-pages (jinak MDPRINT_BROWSER
+    /// nebo automatické hledání Chrome / Edge / Chromium)
+    #[arg(long)]
+    pub browser: Option<PathBuf>,
 
     /// Stáhnout vzdálené obrázky (http/https) do složky obrázků
     #[arg(long)]
@@ -42,4 +65,34 @@ pub enum Lang {
     Cs,
     En,
     De,
+}
+
+/// Velikost písma — odpovídá přepínači A/A/A (radio `fs-small|normal|large`).
+#[derive(ValueEnum, Deserialize, Clone, Copy, Debug, PartialEq, Eq, Default, Hash)]
+#[serde(rename_all = "lowercase")]
+pub enum FontSize {
+    Small,
+    #[default]
+    Normal,
+    Large,
+}
+
+impl FontSize {
+    pub const ALL: [FontSize; 3] = [FontSize::Small, FontSize::Normal, FontSize::Large];
+
+    /// Název pro id radia, šablonu a jména souborů (`small|normal|large`).
+    pub fn name(self) -> &'static str {
+        match self {
+            FontSize::Small => "small",
+            FontSize::Normal => "normal",
+            FontSize::Large => "large",
+        }
+    }
+}
+
+/// `--pdf` (jedno PDF ve zvolené velikosti) nebo `--pdf=all` (tři PDF).
+#[derive(ValueEnum, Clone, Copy, Debug, PartialEq, Eq)]
+pub enum PdfMode {
+    One,
+    All,
 }

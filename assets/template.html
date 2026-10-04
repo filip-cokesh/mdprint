@@ -22,7 +22,7 @@
 </style>
 </head>
 <body>
-<span class="fs-switch" title="{{ ui_fontsize }}"><label class="fs fs-s"><input type="radio" name="fs" id="fs-small">A</label><label class="fs fs-m"><input type="radio" name="fs" id="fs-normal" checked>A</label><label class="fs fs-l"><input type="radio" name="fs" id="fs-large">A</label></span>
+<span class="fs-switch" title="{{ ui_fontsize }}"><label class="fs fs-s"><input type="radio" name="fs" id="fs-small"{% if font_size == "small" %} checked{% endif %}>A</label><label class="fs fs-m"><input type="radio" name="fs" id="fs-normal"{% if font_size == "normal" %} checked{% endif %}>A</label><label class="fs fs-l"><input type="radio" name="fs" id="fs-large"{% if font_size == "large" %} checked{% endif %}>A</label></span>
 <label class="theme-switch" title="{{ ui_theme }}"><input type="checkbox" id="theme-invert">◐</label>
 <article class="doc">
 {%- if brand %}

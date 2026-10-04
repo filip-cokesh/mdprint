@@ -112,6 +112,7 @@ pub fn page_html(
             minijinja::context! {
                 page_size => cfg.paper_size,
                 page_margin => cfg.paper_margin,
+                page_numbers => cfg.page_numbers,
             },
         )
         .context("vadné print.css")?;
@@ -199,6 +200,7 @@ pub fn page_html(
             show_header,
             ui_theme,
             ui_fontsize,
+            font_size => cfg.font_size.name(),
             brand => pack.is_some(),
             company_name => company.as_ref().and_then(|c| c.name.clone()),
             company_line,
@@ -259,13 +261,35 @@ fn vars_css(cfg: &Config) -> String {
     )
 }
 
-/// Obsah (`--toc`): vnořené `<ol>` z nadpisů úrovní 1–3. Kotvy počítá stejný
-/// `Anchorizer` jako comrak při renderu — id proto sedí včetně deduplikace,
-/// pokud se anchorizují všechny nadpisy ve stejném pořadí.
-pub fn build_toc<'a>(root: &'a AstNode<'a>, lang: Lang) -> Option<String> {
+/// Položka obsahu: úroveň nadpisu, id kotvy, text.
+#[derive(Debug, Clone)]
+pub struct TocEntry {
+    pub level: u8,
+    pub id: String,
+    pub text: String,
+}
+
+/// Čísla stran jedné položky obsahu pro malé / střední / velké písmo.
+pub type PageTriple = [Option<u32>; 3];
+
+/// Jak vykreslit čísla stran v obsahu.
+pub enum TocPages<'a> {
+    /// Bez čísel (prostý `--toc`).
+    Off,
+    /// Zástupné „000“ pevné šířky — sonda stránkování má stejný layout
+    /// jako finální dokument.
+    Placeholder,
+    /// Změřená čísla podle id kotvy.
+    Numbers(&'a std::collections::HashMap<String, PageTriple>),
+}
+
+/// Nadpisy úrovní 1–3 pro obsah. Kotvy počítá stejný `Anchorizer` jako
+/// comrak při renderu — id proto sedí včetně deduplikace, pokud se
+/// anchorizují všechny nadpisy ve stejném pořadí.
+pub fn toc_entries<'a>(root: &'a AstNode<'a>) -> Vec<TocEntry> {
     const MAX_LEVEL: u8 = 3;
     let mut anchorizer = comrak::Anchorizer::new();
-    let mut entries: Vec<(u8, String, String)> = Vec::new();
+    let mut entries = Vec::new();
     for node in root.descendants() {
         let level = match node.data.borrow().value {
             NodeValue::Heading(h) => h.level,
@@ -274,23 +298,34 @@ pub fn build_toc<'a>(root: &'a AstNode<'a>, lang: Lang) -> Option<String> {
         let text = collect_text(node);
         let id = anchorizer.anchorize(&text);
         if level <= MAX_LEVEL {
-            entries.push((level, id, text));
+            entries.push(TocEntry { level, id, text });
         }
     }
+    entries
+}
+
+/// Obsah (`--toc`): vnořené `<ol>`; s `pages` ≠ `Off` nese každá položka
+/// vodicí tečky a `<span class="toc-page" data-s data-m data-l>` — print.css
+/// zobrazí číslo podle zvolené velikosti písma, na obrazovce je skryté.
+pub fn render_toc(entries: &[TocEntry], lang: Lang, pages: TocPages) -> Option<String> {
     if entries.is_empty() {
         return None;
     }
-
-    let base = entries.iter().map(|(l, ..)| *l).min().expect("neprázdné");
+    let base = entries.iter().map(|e| e.level).min().expect("neprázdné");
     let title = match lang {
         Lang::Cs => "Obsah",
         Lang::En => "Contents",
         Lang::De => "Inhalt",
     };
-    let mut html = format!("<nav class=\"toc\">\n<h2 class=\"toc-title\">{title}</h2>\n");
+    let class = if matches!(pages, TocPages::Off) {
+        "toc"
+    } else {
+        "toc toc-pages"
+    };
+    let mut html = format!("<nav class=\"{class}\">\n<h2 class=\"toc-title\">{title}</h2>\n");
     let mut depth = 0u8;
-    for (level, id, text) in &entries {
-        let target = level.saturating_sub(base) + 1;
+    for entry in entries {
+        let target = entry.level.saturating_sub(base) + 1;
         while depth < target {
             html.push_str("<ol>\n");
             depth += 1;
@@ -304,7 +339,7 @@ pub fn build_toc<'a>(root: &'a AstNode<'a>, lang: Lang) -> Option<String> {
         }
         let mut escaped = String::new();
         // escapování textu položky (id je už jen bezpečný slug z anchorizeru)
-        for c in text.chars() {
+        for c in entry.text.chars() {
             match c {
                 '&' => escaped.push_str("&amp;"),
                 '<' => escaped.push_str("&lt;"),
@@ -312,7 +347,29 @@ pub fn build_toc<'a>(root: &'a AstNode<'a>, lang: Lang) -> Option<String> {
                 _ => escaped.push(c),
             }
         }
-        let _ = write!(html, "<li><a href=\"#{id}\">{escaped}</a>");
+        let id = &entry.id;
+        let page_span = |[s, m, l]: [String; 3]| {
+            format!(
+                "<span class=\"toc-leader\"></span>\
+                 <span class=\"toc-page\" data-s=\"{s}\" data-m=\"{m}\" data-l=\"{l}\"></span>"
+            )
+        };
+        let suffix = match &pages {
+            TocPages::Off => String::new(),
+            TocPages::Placeholder => page_span(["000".into(), "000".into(), "000".into()]),
+            TocPages::Numbers(map) => {
+                let triple = map.get(id).copied().unwrap_or_default();
+                page_span(triple.map(|p| p.map(|n| n.to_string()).unwrap_or_default()))
+            }
+        };
+        if matches!(pages, TocPages::Off) {
+            let _ = write!(html, "<li><a href=\"#{id}\">{escaped}</a>");
+        } else {
+            let _ = write!(
+                html,
+                "<li><a href=\"#{id}\"><span class=\"toc-text\">{escaped}</span>{suffix}</a>"
+            );
+        }
         html.push('\n');
     }
     while depth > 0 {
@@ -351,6 +408,49 @@ fn format_date(date: &str, lang: Lang) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn entries() -> Vec<TocEntry> {
+        vec![
+            TocEntry {
+                level: 1,
+                id: "úvod".into(),
+                text: "Úvod & cíle".into(),
+            },
+            TocEntry {
+                level: 2,
+                id: "detail".into(),
+                text: "Detail".into(),
+            },
+        ]
+    }
+
+    #[test]
+    fn toc_without_pages_keeps_plain_links() {
+        let html = render_toc(&entries(), Lang::Cs, TocPages::Off).unwrap();
+        assert!(html.starts_with("<nav class=\"toc\">"));
+        assert!(html.contains("<a href=\"#úvod\">Úvod &amp; cíle</a>"));
+        assert!(!html.contains("toc-page"));
+    }
+
+    #[test]
+    fn toc_placeholder_and_numbers() {
+        let html = render_toc(&entries(), Lang::En, TocPages::Placeholder).unwrap();
+        assert!(html.starts_with("<nav class=\"toc toc-pages\">"));
+        assert_eq!(
+            html.matches(r#"data-s="000" data-m="000" data-l="000""#)
+                .count(),
+            2
+        );
+
+        let mut map = std::collections::HashMap::new();
+        map.insert("úvod".to_string(), [Some(1), Some(1), Some(2)]);
+        let html = render_toc(&entries(), Lang::En, TocPages::Numbers(&map)).unwrap();
+        assert!(html.contains(
+            r##"<a href="#úvod"><span class="toc-text">Úvod &amp; cíle</span><span class="toc-leader"></span><span class="toc-page" data-s="1" data-m="1" data-l="2"></span></a>"##
+        ));
+        // chybějící cíl → prázdné číslo, ne pád
+        assert!(html.contains(r#"data-s="" data-m="" data-l="""#));
+    }
 
     #[test]
     fn czech_date_from_iso() {

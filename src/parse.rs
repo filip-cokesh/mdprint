@@ -3,7 +3,7 @@ use comrak::nodes::{AstNode, NodeValue};
 use comrak::{Arena, Options, parse_document};
 use serde::Deserialize;
 
-use crate::cli::Lang;
+use crate::cli::{FontSize, Lang};
 
 /// Volby comraku pro celý pipeline (parse i render sdílí jednu instanci).
 pub fn options() -> Options<'static> {
@@ -41,6 +41,12 @@ pub struct FrontMatter {
     pub version: Option<String>,
     /// Šablona: "default", nebo cesta ke složce packu (relativně ke vstupu).
     pub template: Option<String>,
+    /// Číslování stránek v tisku (výchozí zapnuto).
+    pub page_numbers: Option<bool>,
+    /// Čísla stran v obsahu (zapíná i obsah).
+    pub toc_pages: Option<bool>,
+    /// Výchozí velikost písma: small | normal | large.
+    pub font_size: Option<FontSize>,
 }
 
 /// YAML skalár (string i číslo) → `Option<String>`.

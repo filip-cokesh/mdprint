@@ -2173,6 +2173,8 @@ nav.toc li::before {
 }
 nav.toc a { text-decoration: none; color: inherit; }
 nav.toc a:hover { text-decoration: underline; }
+/* čísla stran (--toc-pages) dávají smysl jen v tisku — print.css je zobrazí */
+nav.toc .toc-leader, nav.toc .toc-page { display: none; }
 
 /* ---- doladění KaTeX vůči Libertinusu ----
    KaTeX default 1.21em je kalibrovaný na jiné poměry; x-výšky KaTeX_Main
@@ -2247,12 +2249,20 @@ section.footnotes p { text-align: left; }
 .footnote-ref a, a.footnote-backref { text-decoration: none; }
 
 /* ===== print.css — tisk z Chromu (Ctrl+P) =====
-   Číslování stránek je mimo rozsah v1; stránkový rám drží @page,
-   případný Paged.js se později přidá jako samostatná vrstva nad tímto CSS. */
+   Stránkový rám drží @page; číslo stránky je margin box (Chrome/Edge 131+,
+   Safari a Firefox ho zatím ignorují — nic se nerozbije). */
 
 @page {
   size: A4;
   margin: 2.5cm 2cm;
+  @bottom-right {
+    content: counter(page) "\2009/\2009" counter(pages);
+    font-family: 'Libertinus Sans', 'Segoe UI', Arial, sans-serif;
+    font-size: 9pt;
+    font-variant-numeric: tabular-nums;
+    color: #555;
+    vertical-align: middle;
+  }
 }
 
 @media print {
@@ -2339,6 +2349,34 @@ section.footnotes p { text-align: left; }
     color: #333;
     overflow-wrap: anywhere;
   }
+  /* obsah s čísly stran (--toc-pages): číslo podle zvolené velikosti
+     písma, vodicí tečky flexem (leader() Chrome neumí). Číslo má pevnou
+     šířku 3ch → sonda se zástupným „000“ má stejný layout jako výsledek. */
+  nav.toc.toc-pages li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 0.45em;
+  }
+  nav.toc.toc-pages li > ol { grid-column: 1 / -1; }
+  nav.toc.toc-pages a { display: flex; align-items: baseline; }
+  nav.toc.toc-pages .toc-leader {
+    display: block;
+    flex: 1 1 1em;
+    min-width: 1em;
+    margin: 0 0.3em;
+    border-bottom: 1px dotted #888;
+  }
+  nav.toc.toc-pages .toc-page {
+    display: block;
+    flex: none;
+    min-width: 3ch;
+    text-align: right;
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+  nav.toc .toc-page::after { content: attr(data-m); }
+  html:has(#fs-small:checked) nav.toc .toc-page::after { content: attr(data-s); }
+  html:has(#fs-large:checked) nav.toc .toc-page::after { content: attr(data-l); }
+
   /* … ale ne u interních kotev a poznámek pod čarou */
   a.anchor::after, .footnote-ref a::after, a.footnote-backref::after { content: none; }
 }
@@ -2354,20 +2392,20 @@ section.footnotes p { text-align: left; }
 <h1 class="doc-title">Durchbiegung eines Einfeldträgers unter Gleichstreckenlast</h1>
 <p class="doc-byline">Filip Hokeš · 04.09.2026 · Version 1.2</p>
 </header>
-<nav class="toc">
+<nav class="toc toc-pages">
 <h2 class="toc-title">Inhalt</h2>
 <ol>
-<li><a href="#einleitung">Einleitung</a>
+<li><a href="#einleitung"><span class="toc-text">Einleitung</span><span class="toc-leader"></span><span class="toc-page" data-s="1" data-m="1" data-l="1"></span></a>
 </li>
-<li><a href="#eingangsdaten-und-parameterstudie">Eingangsdaten und Parameterstudie</a>
+<li><a href="#eingangsdaten-und-parameterstudie"><span class="toc-text">Eingangsdaten und Parameterstudie</span><span class="toc-leader"></span><span class="toc-page" data-s="2" data-m="2" data-l="2"></span></a>
 </li>
-<li><a href="#berechnungsskript">Berechnungsskript</a>
+<li><a href="#berechnungsskript"><span class="toc-text">Berechnungsskript</span><span class="toc-leader"></span><span class="toc-page" data-s="3" data-m="3" data-l="4"></span></a>
 </li>
-<li><a href="#grafische-ergebnisse">Grafische Ergebnisse</a>
+<li><a href="#grafische-ergebnisse"><span class="toc-text">Grafische Ergebnisse</span><span class="toc-leader"></span><span class="toc-page" data-s="5" data-m="5" data-l="6"></span></a>
 </li>
-<li><a href="#quelle-vs-ergebnis">Quelle vs. Ergebnis</a>
+<li><a href="#quelle-vs-ergebnis"><span class="toc-text">Quelle vs. Ergebnis</span><span class="toc-leader"></span><span class="toc-page" data-s="5" data-m="6" data-l="7"></span></a>
 </li>
-<li><a href="#fazit">Fazit</a>
+<li><a href="#fazit"><span class="toc-text">Fazit</span><span class="toc-leader"></span><span class="toc-page" data-s="6" data-m="6" data-l="7"></span></a>
 </li>
 </ol>
 </nav>

@@ -2173,6 +2173,8 @@ nav.toc li::before {
 }
 nav.toc a { text-decoration: none; color: inherit; }
 nav.toc a:hover { text-decoration: underline; }
+/* čísla stran (--toc-pages) dávají smysl jen v tisku — print.css je zobrazí */
+nav.toc .toc-leader, nav.toc .toc-page { display: none; }
 
 /* ---- doladění KaTeX vůči Libertinusu ----
    KaTeX default 1.21em je kalibrovaný na jiné poměry; x-výšky KaTeX_Main
@@ -2247,12 +2249,20 @@ section.footnotes p { text-align: left; }
 .footnote-ref a, a.footnote-backref { text-decoration: none; }
 
 /* ===== print.css — tisk z Chromu (Ctrl+P) =====
-   Číslování stránek je mimo rozsah v1; stránkový rám drží @page,
-   případný Paged.js se později přidá jako samostatná vrstva nad tímto CSS. */
+   Stránkový rám drží @page; číslo stránky je margin box (Chrome/Edge 131+,
+   Safari a Firefox ho zatím ignorují — nic se nerozbije). */
 
 @page {
   size: A4;
   margin: 2.5cm 2cm;
+  @bottom-right {
+    content: counter(page) "\2009/\2009" counter(pages);
+    font-family: 'Libertinus Sans', 'Segoe UI', Arial, sans-serif;
+    font-size: 9pt;
+    font-variant-numeric: tabular-nums;
+    color: #555;
+    vertical-align: middle;
+  }
 }
 
 @media print {
@@ -2339,6 +2349,34 @@ section.footnotes p { text-align: left; }
     color: #333;
     overflow-wrap: anywhere;
   }
+  /* obsah s čísly stran (--toc-pages): číslo podle zvolené velikosti
+     písma, vodicí tečky flexem (leader() Chrome neumí). Číslo má pevnou
+     šířku 3ch → sonda se zástupným „000“ má stejný layout jako výsledek. */
+  nav.toc.toc-pages li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 0.45em;
+  }
+  nav.toc.toc-pages li > ol { grid-column: 1 / -1; }
+  nav.toc.toc-pages a { display: flex; align-items: baseline; }
+  nav.toc.toc-pages .toc-leader {
+    display: block;
+    flex: 1 1 1em;
+    min-width: 1em;
+    margin: 0 0.3em;
+    border-bottom: 1px dotted #888;
+  }
+  nav.toc.toc-pages .toc-page {
+    display: block;
+    flex: none;
+    min-width: 3ch;
+    text-align: right;
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+  nav.toc .toc-page::after { content: attr(data-m); }
+  html:has(#fs-small:checked) nav.toc .toc-page::after { content: attr(data-s); }
+  html:has(#fs-large:checked) nav.toc .toc-page::after { content: attr(data-l); }
+
   /* … ale ne u interních kotev a poznámek pod čarou */
   a.anchor::after, .footnote-ref a::after, a.footnote-backref::after { content: none; }
 }
@@ -2354,20 +2392,20 @@ section.footnotes p { text-align: left; }
 <h1 class="doc-title">Průhyb prostě podepřeného nosníku za rovnoměrného zatížení</h1>
 <p class="doc-byline">Filip Hokeš · 4. 9. 2026 · verze 1.2</p>
 </header>
-<nav class="toc">
+<nav class="toc toc-pages">
 <h2 class="toc-title">Obsah</h2>
 <ol>
-<li><a href="#úvod">Úvod</a>
+<li><a href="#úvod"><span class="toc-text">Úvod</span><span class="toc-leader"></span><span class="toc-page" data-s="1" data-m="1" data-l="1"></span></a>
 </li>
-<li><a href="#vstupní-data-aparametrická-studie">Vstupní data a parametrická studie</a>
+<li><a href="#vstupní-data-aparametrická-studie"><span class="toc-text">Vstupní data a parametrická studie</span><span class="toc-leader"></span><span class="toc-page" data-s="1" data-m="2" data-l="2"></span></a>
 </li>
-<li><a href="#výpočetní-skript">Výpočetní skript</a>
+<li><a href="#výpočetní-skript"><span class="toc-text">Výpočetní skript</span><span class="toc-leader"></span><span class="toc-page" data-s="3" data-m="3" data-l="4"></span></a>
 </li>
-<li><a href="#grafické-výsledky">Grafické výsledky</a>
+<li><a href="#grafické-výsledky"><span class="toc-text">Grafické výsledky</span><span class="toc-leader"></span><span class="toc-page" data-s="5" data-m="5" data-l="6"></span></a>
 </li>
-<li><a href="#zdroj-vs-výsledek">Zdroj vs. výsledek</a>
+<li><a href="#zdroj-vs-výsledek"><span class="toc-text">Zdroj vs. výsledek</span><span class="toc-leader"></span><span class="toc-page" data-s="6" data-m="6" data-l="7"></span></a>
 </li>
-<li><a href="#závěr">Závěr</a>
+<li><a href="#závěr"><span class="toc-text">Závěr</span><span class="toc-leader"></span><span class="toc-page" data-s="6" data-m="6" data-l="8"></span></a>
 </li>
 </ol>
 </nav>
@@ -2389,7 +2427,7 @@ pře­kro­čit hod­notu 1/250.</p>
 <p>Uve­dený vztah plyne z Ber­noul­liho–Navie­rovy hypo­tézy, která zane­dbává
 smy­ko­vou složku prů­hybu. O její veli­kosti neroz­ho­duje štíh­lost sama o sobě,
 ale <strong>poměr ohy­bové a smy­kové tuhosti</strong>: pro rov­no­měrné zatí­žení platí</p>
-<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mfrac><msub><mi>w</mi><mi mathvariant="normal">V</mi></msub><msub><mi>w</mi><mi mathvariant="normal">M</mi></msub></mfrac><mo>=</mo><mfrac><mrow><mi>q</mi><msup><mi>L</mi><mn>2</mn></msup><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mn>8</mn><mtext> </mtext><mi>G</mi><mtext> </mtext><msub><mi>A</mi><mi mathvariant="normal">s</mi></msub><mo stretchy="false">)</mo></mrow><mrow><mn>5</mn><mtext> </mtext><mi>q</mi><mtext> </mtext><msup><mi>L</mi><mn>4</mn></msup><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mn>384</mn><mtext> </mtext><mi>E</mi><mtext> </mtext><mi>I</mi><mo stretchy="false">)</mo></mrow></mfrac><mo>=</mo><mn>9,6</mn><mtext> </mtext><mfrac><mrow><mi>E</mi><mtext> </mtext><mi>I</mi></mrow><mrow><mi>G</mi><mtext> </mtext><msub><mi>A</mi><mi mathvariant="normal">s</mi></msub><mtext> </mtext><msup><mi>L</mi><mn>2</mn></msup></mrow></mfrac><mo separator="true">,</mo></mrow><annotation encoding="application/x-tex">\frac{w_{\mathrm{V}}}{w_{\mathrm{M}}} = \frac{q L^2 / (8\,G\,A_{\mathrm{s}})}
+<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mfrac><msub><mi>w</mi><mi mathvariant="normal">V</mi></msub><msub><mi>w</mi><mi mathvariant="normal">M</mi></msub></mfrac><mo>=</mo><mfrac><mrow><mi>q</mi><msup><mi>L</mi><mn>2</mn></msup><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mn>8</mn><mtext> </mtext><mi>G</mi><mtext> </mtext><msub><mi>A</mi><mi mathvariant="normal">s</mi></msub><mo stretchy="false">)</mo></mrow><mrow><mn>5</mn><mtext> </mtext><mi>q</mi><mtext> </mtext><msup><mi>L</mi><mn>4</mn></msup><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mn>384</mn><mtext> </mtext><mi>E</mi><mtext> </mtext><mi>I</mi><mo stretchy="false">)</mo></mrow></mfrac><mo>=</mo><mn>9,6</mn><mtext> </mtext><mfrac><mrow><mi>E</mi><mtext> </mtext><mi>I</mi></mrow><mrow><mi>G</mi><mtext> </mtext><msub><mi>A</mi><mi mathvariant="normal">s</mi></msub><mtext> </mtext><msup><mi>L</mi><mn>2</mn></msup></mrow></mfrac><mo separator="true">,</mo></mrow><annotation encoding="application/x-tex">\frac{w_{\mathrm{V}}}{w_{\mathrm{M}}} = \frac{q L^2 / (8\,G\,A_{\mathrm{s}})}
 {5\,q\,L^4 / (384\,E\,I)} = 9{,}6\,\frac{E\,I}{G\,A_{\mathrm{s}}\,L^2},</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:1.9436em;vertical-align:-0.836em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.1076em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.0269em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathrm mtight">M</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.0269em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathrm mtight" style="margin-right:0.0139em;">V</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.836em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:2.4271em;vertical-align:-0.936em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.4911em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">5</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">q</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">L</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7401em;"><span style="top:-2.989em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight">4</span></span></span></span></span></span></span></span><span class="mord">/</span><span class="mopen">(</span><span class="mord">384</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0576em;">E</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">I</span><span class="mclose">)</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">q</span><span class="mord"><span class="mord mathnormal">L</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mord">/</span><span class="mopen">(</span><span class="mord">8</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">G</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathrm mtight">s</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.936em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:2.1963em;vertical-align:-0.836em;"></span><span class="mord">9</span><span class="mord"><span class="mpunct">,</span></span><span class="mord">6</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3603em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">G</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathrm mtight">s</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">L</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.7401em;"><span style="top:-2.989em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0576em;">E</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">I</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.836em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mpunct">,</span></span></span></span></span></p>
 <p>kde <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>G</mi></mrow><annotation encoding="application/x-tex">G</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:0.6833em;"></span><span class="mord mathnormal">G</span></span></span></span> je modul pruž­nosti ve smyku a <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>A</mi><mi mathvariant="normal">s</mi></msub></mrow><annotation encoding="application/x-tex">A_{\mathrm{s}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathrm mtight">s</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> smy­ková plo­cha prů­řezu.
 Teprve u homo­gen­ního obdél­ní­ko­vého prů­řezu se výraz zjed­no­duší na

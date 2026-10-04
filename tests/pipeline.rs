@@ -12,6 +12,7 @@ fn cli(input: PathBuf) -> Cli {
         fetch: false,
         config: None,
         template: None,
+        ..Default::default()
     }
 }
 
@@ -396,4 +397,137 @@ fn math_wide_tiers_scale_with_configured_size() {
     let out = mdprint::run(&cli(input)).unwrap();
     let html = fs::read_to_string(&out).unwrap();
     assert!(html.contains(tier), "zvětšená math musí do tieru");
+}
+
+/// Dokument přes několik stran (dlouhé odstavce pod každým nadpisem).
+fn long_doc() -> String {
+    let para = "Odstavec s dostatečně dlouhým textem, aby se dokument roztáhl \
+                přes více stran při tisku na formát A4. "
+        .repeat(30);
+    let mut md = String::from("---\ntitle: Test stránkování\n---\n\n");
+    for (i, h) in ["Úvod", "Metoda", "Výsledky", "Diskuse", "Závěr"]
+        .iter()
+        .enumerate()
+    {
+        md.push_str(&format!("# {h}\n\n"));
+        for _ in 0..=i {
+            md.push_str(&format!("{para}\n\n"));
+        }
+    }
+    md
+}
+
+#[test]
+fn page_numbers_and_font_size_from_config() {
+    let dir = tempfile::tempdir().unwrap();
+    let input = dir.path().join("doc.md");
+    fs::write(&input, "# A\n\ntext\n").unwrap();
+
+    // výchozí: číslování zapnuté, radio normal
+    let html = fs::read_to_string(mdprint::run(&cli(input.clone())).unwrap()).unwrap();
+    assert!(html.contains("@bottom-right"), "chybí číslo stránky");
+    assert!(html.contains(r#"id="fs-normal" checked>"#));
+
+    // [print] v tomlu: bez čísel, velké písmo
+    fs::write(
+        dir.path().join("mdprint.toml"),
+        "[print]\npage_numbers = false\nfont_size = \"large\"\n",
+    )
+    .unwrap();
+    let html = fs::read_to_string(mdprint::run(&cli(input.clone())).unwrap()).unwrap();
+    assert!(!html.contains("@bottom-right"));
+    assert!(html.contains(r#"id="fs-large" checked>"#));
+    assert!(html.contains(r#"id="fs-normal">"#));
+
+    // CLI přebije toml
+    let mut c = cli(input);
+    c.font_size = Some(mdprint::cli::FontSize::Small);
+    let html = fs::read_to_string(mdprint::run(&c).unwrap()).unwrap();
+    assert!(html.contains(r#"id="fs-small" checked>"#));
+}
+
+#[test]
+fn toc_pages_without_browser_warns_and_falls_back() {
+    let dir = tempfile::tempdir().unwrap();
+    let input = dir.path().join("doc.md");
+    fs::write(&input, "# Úvod\n\ntext\n\n# Závěr\n\ntext\n").unwrap();
+
+    let mut c = cli(input);
+    c.toc_pages = true; // zapíná i obsah
+    c.browser = Some(dir.path().join("neni-chrome.exe"));
+    let out = mdprint::run_full(&c).unwrap();
+    assert_eq!(out.warnings.len(), 1, "{:?}", out.warnings);
+    assert!(out.warnings[0].contains("prohlížeč nenalezen"));
+    let html = fs::read_to_string(&out.html).unwrap();
+    assert!(html.contains("<nav class=\"toc\">"), "obsah bez čísel");
+    assert!(!html.contains(r#"class="toc-page""#));
+    // žádné sondy po sobě nenechá
+    assert_eq!(
+        fs::read_dir(dir.path()).unwrap().count(),
+        2,
+        "doc.md + doc.html"
+    );
+
+    // --pdf bez prohlížeče je chyba (výslovný požadavek)
+    c.pdf = Some(mdprint::cli::PdfMode::One);
+    let err = format!("{:#}", mdprint::run_full(&c).unwrap_err());
+    assert!(err.contains("--pdf vyžaduje Chrome nebo Edge"), "{err}");
+}
+
+/// End-to-end s prohlížečem: čísla v obsahu = skutečné stránky nadpisů
+/// v PDF pro každou velikost písma. Bez Chrome/Edge se přeskočí.
+#[test]
+fn toc_pages_match_printed_pdf() {
+    let Ok(browser) = mdprint::paginate::find_browser(None) else {
+        eprintln!("přeskočeno: Chrome/Edge nenalezen");
+        return;
+    };
+    let dir = tempfile::tempdir().unwrap();
+    let input = dir.path().join("doc.md");
+    fs::write(&input, long_doc()).unwrap();
+
+    let mut c = cli(input);
+    c.toc_pages = true;
+    c.pdf = Some(mdprint::cli::PdfMode::All);
+    c.browser = Some(browser);
+    let out = mdprint::run_full(&c).unwrap();
+    assert!(out.warnings.is_empty(), "{:?}", out.warnings);
+    assert_eq!(out.pdfs.len(), 3);
+
+    let html = fs::read_to_string(&out.html).unwrap();
+    let re = regex::Regex::new(
+        r##"<a href="#([^"]+)">.*?<span class="toc-page" data-s="(\d*)" data-m="(\d*)" data-l="(\d*)">"##,
+    )
+    .unwrap();
+    let rows: Vec<_> = re.captures_iter(&html).collect();
+    assert_eq!(rows.len(), 5, "pět položek obsahu");
+
+    for (i, pdf) in out.pdfs.iter().enumerate() {
+        let dests = mdprint::paginate::named_destination_pages(pdf).unwrap();
+        for row in &rows {
+            let expected: u32 = row[i + 2].parse().expect("číslo strany");
+            assert_eq!(
+                dests.get(&row[1]),
+                Some(&expected),
+                "{} v {}",
+                &row[1],
+                pdf.display()
+            );
+        }
+    }
+    // dokument je vícestránkový a velké písmo má víc stran než malé
+    let last = |i: usize| rows[4][i + 2].parse::<u32>().unwrap();
+    assert!(
+        last(0) > 1 && last(2) > last(0),
+        "s={} l={}",
+        last(0),
+        last(2)
+    );
+
+    // úklid: jen doc.md, doc.html a tři PDF
+    let names: Vec<String> = fs::read_dir(dir.path())
+        .unwrap()
+        .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
+        .collect();
+    assert_eq!(names.len(), 5, "{names:?}");
 }
