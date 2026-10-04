@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.8.1] - 2026-10-04
+
+### Fixed
+- **Headless browser could hang on macOS** (`--pdf`, `--toc-pages`): a
+  fresh browser profile touched the Keychain and never finished. The
+  browser now starts with a mock keychain and without background
+  services; a complete PDF that stops growing is accepted even if the
+  process does not exit, and failures quote the browser's own output.
+  0.8.0 was not published to crates.io because of this
+
 ## [0.8.0] - 2026-10-04
 
 ### Added

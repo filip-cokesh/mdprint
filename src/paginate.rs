@@ -155,12 +155,20 @@ pub fn print_all(browser: &Path, jobs: &[PrintJob]) -> Result<()> {
         // Chrome relativní cestu k PDF neřeší vůči našemu CWD
         let pdf_abs = std::path::absolute(&job.pdf)
             .with_context(|| format!("neplatná cesta {}", job.pdf.display()))?;
+        let log = fs::File::create(profiles.path().join(format!("{i}.log")))
+            .context("nelze vytvořit log prohlížeče")?;
         let child = Command::new(browser)
             .arg("--headless")
             .arg("--disable-gpu")
             .arg("--no-first-run")
             .arg("--no-default-browser-check")
             .arg("--disable-extensions")
+            // čerstvý profil na macOS jinak sahá do Klíčenky a v CI visí
+            .arg("--use-mock-keychain")
+            .arg("--password-store=basic")
+            .arg("--disable-background-networking")
+            .arg("--disable-component-update")
+            .arg("--disable-sync")
             .arg("--no-pdf-header-footer")
             .arg("--print-to-pdf-no-header")
             .arg(format!(
@@ -171,7 +179,7 @@ pub fn print_all(browser: &Path, jobs: &[PrintJob]) -> Result<()> {
             .arg(&url)
             .stdin(Stdio::null())
             .stdout(Stdio::null())
-            .stderr(Stdio::null())
+            .stderr(Stdio::from(log))
             .spawn()
             .with_context(|| format!("nelze spustit prohlížeč {}", browser.display()))?;
         children.push((child, job));
@@ -179,10 +187,18 @@ pub fn print_all(browser: &Path, jobs: &[PrintJob]) -> Result<()> {
 
     let started = Instant::now();
     let mut failure: Option<anyhow::Error> = None;
-    for (mut child, job) in children {
+    for (i, (mut child, job)) in children.into_iter().enumerate() {
+        let mut settled: Option<(u64, Instant)> = None;
         let status = loop {
             match child.try_wait() {
                 Ok(Some(status)) => break Some(status),
+                // PDF je hotové, ale proces neskončil (Chrome občas visí
+                // při ukončení) — po 1,5 s beze změny ho ukončit a přijmout
+                Ok(None) if pdf_settled(&job.pdf, &mut settled) => {
+                    let _ = child.kill();
+                    let _ = child.wait();
+                    break None;
+                }
                 Ok(None) if started.elapsed() > RENDER_TIMEOUT => {
                     let _ = child.kill();
                     let _ = child.wait();
@@ -195,17 +211,34 @@ pub fn print_all(browser: &Path, jobs: &[PrintJob]) -> Result<()> {
                 }
             }
         };
-        let ok = status.is_some_and(|s| s.success())
-            && fs::metadata(&job.pdf).is_ok_and(|m| m.len() > 0);
+        // úspěch = kompletní PDF a proces skončil čistě, nebo jsme ho
+        // ukončili až po zápisu kompletního PDF
+        let ok = complete_pdf_len(&job.pdf).is_some() && status.is_none_or(|s| s.success());
         if !ok && failure.is_none() {
+            let log =
+                fs::read_to_string(profiles.path().join(format!("{i}.log"))).unwrap_or_default();
+            let tail: Vec<&str> = log.lines().rev().take(6).collect();
+            let tail = tail.into_iter().rev().collect::<Vec<_>>().join(
+                "
+  ",
+            );
+            let detail = if tail.is_empty() {
+                String::new()
+            } else {
+                format!(
+                    "
+  výstup prohlížeče:
+  {tail}"
+                )
+            };
             failure = Some(match status {
                 None => anyhow!(
-                    "tisk {} do PDF nedoběhl do {} s",
+                    "tisk {} do PDF nedoběhl do {} s{detail}",
                     job.html.display(),
                     RENDER_TIMEOUT.as_secs()
                 ),
                 Some(s) => anyhow!(
-                    "prohlížeč nevytvořil PDF z {} (kód {s})",
+                    "prohlížeč nevytvořil PDF z {} (kód {s}){detail}",
                     job.html.display()
                 ),
             });
@@ -214,6 +247,34 @@ pub fn print_all(browser: &Path, jobs: &[PrintJob]) -> Result<()> {
     match failure {
         Some(e) => Err(e),
         None => Ok(()),
+    }
+}
+
+/// Velikost PDF, pokud je soubor kompletní (posledních 32 bajtů obsahuje
+/// `%%EOF`); čte jen konec souboru.
+fn complete_pdf_len(pdf: &Path) -> Option<u64> {
+    use std::io::{Read, Seek, SeekFrom};
+    let mut f = fs::File::open(pdf).ok()?;
+    let len = f.metadata().ok()?.len();
+    f.seek(SeekFrom::Start(len.saturating_sub(32))).ok()?;
+    let mut tail = Vec::new();
+    f.read_to_end(&mut tail).ok()?;
+    tail.windows(5).any(|w| w == b"%%EOF").then_some(len)
+}
+
+/// Kompletní PDF, jehož velikost se 1,5 s nezměnila. `since` drží
+/// (velikost, okamžik prvního pozorování) mezi voláními.
+fn pdf_settled(pdf: &Path, since: &mut Option<(u64, Instant)>) -> bool {
+    let Some(len) = complete_pdf_len(pdf) else {
+        *since = None;
+        return false;
+    };
+    match since {
+        Some((l, t)) if *l == len => t.elapsed() >= Duration::from_millis(1500),
+        _ => {
+            *since = Some((len, Instant::now()));
+            false
+        }
     }
 }
 
@@ -392,6 +453,33 @@ mod tests {
         );
         assert!(url.ends_with("/%C3%BAvod%20a%20%231.html"), "{url}");
         assert!(!url.contains('\\'), "{url}");
+    }
+
+    #[test]
+    fn complete_pdf_needs_eof_and_settles() {
+        let dir = tempfile::tempdir().unwrap();
+        let f = dir.path().join("x.pdf");
+        assert_eq!(complete_pdf_len(&f), None, "neexistuje");
+        fs::write(
+            &f,
+            b"%PDF-1.4
+1 0 obj",
+        )
+        .unwrap();
+        assert_eq!(complete_pdf_len(&f), None, "rozepsané");
+        fs::write(
+            &f,
+            b"%PDF-1.4
+trailer
+%%EOF
+",
+        )
+        .unwrap();
+        assert_eq!(complete_pdf_len(&f), Some(23));
+        let mut since = None;
+        assert!(!pdf_settled(&f, &mut since), "první pozorování");
+        since = since.map(|(l, t)| (l, t - Duration::from_secs(2)));
+        assert!(pdf_settled(&f, &mut since), "beze změny 2 s");
     }
 
     #[test]
