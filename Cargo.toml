@@ -25,7 +25,7 @@ base64 = "0.22"
 blake3 = "1"
 minijinja = "2"
 clap = { version = "4", features = ["derive"] }
-comrak = "0.54"
+comrak = "0.55"
 deunicode = "1"
 percent-encoding = "2"
 serde = { version = "1", features = ["derive"] }
