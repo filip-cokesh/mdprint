@@ -36,8 +36,16 @@ highlight → images** → `render` (vlastní formatter → HTML → minijinja �
   cs+de, anglické zvlášť), `dash.rs` (spaced en dash cs/de, em dash en),
   `misc.rs` (apostrof, ×, …, tisíce); tři pipeline v `typo::transform`
 - jazykové defaulty generovaných textů: figure prefix Obr./Fig./Abb.
-  (config.rs), TOC Obsah/Contents/Inhalt, verze/version/Version, datum byline
+  (config.rs), table prefix Tab./Table/Tab. a `\autoref` rovnice
+  rovnice/Eq./Gl. (xref.rs), TOC Obsah/Contents/Inhalt, seznamy Seznam
+  obrázků/List of Figures/Abbildungsverzeichnis + Seznam tabulek/List of
+  Tables/Tabellenverzeichnis, verze/version/Version, datum byline
   ČSN/beze změny/DIN (render.rs)
+- `xref.rs` — **před typo** (labely by typografie rozbila): `\label` v display
+  math → `\tag{N}` + `attrs.id`; `{#fig:x}` z comrak `link_attributes`;
+  odstavec `Tabulka:|Table:|Tabelle:` před tabulkou → třída `table-caption`
+  + id tabulky; `\ref`/`\eqref`/`\autoref` v Text uzlech → HtmlInline odkaz
+  (Text uzel se rozdělí); `list_entries` pro `--lof/--lot` až po typo
 - `hyphen.rs` — U+00AD přes hyphenation (embed_all); slovo ≥ 6 znaků, ≥ 3 před/za,
   nadpisy se nedělí
 - `math.rs` — katex-rs: `NodeValue::Math` → `HtmlInline`; chybný TeX = chyba

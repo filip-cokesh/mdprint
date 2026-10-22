@@ -50,6 +50,9 @@
 {{ toc }}
 {%- endif %}
 {{ body }}
+{%- if end_lists %}
+{{ end_lists }}
+{%- endif %}
 {%- if brand and (company_name or company_line or links) %}
 <footer class="brand-footer">
 {%- if company_name %}

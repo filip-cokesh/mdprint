@@ -12,13 +12,15 @@
 
 *Česká verze dokumentace: [README.cs.md](README.cs.md)*
 
-**Live demos** — real documents produced by `mdprint --toc`, with math,
-tables, code, figures, typography and dark mode:
+**Live demos** — real documents produced by `mdprint --toc --lof --lot`, with
+numbered equations and cross-references, captioned tables, code, figures,
+typography and dark mode:
 [čeština](https://filip-cokesh.github.io/mdprint/) ·
 [English](https://filip-cokesh.github.io/mdprint/en.html) ·
 [Deutsch](https://filip-cokesh.github.io/mdprint/de.html).
 Try printing them (Ctrl+P), or open the **printed PDFs** with page numbers
-and a table of contents with page references (`mdprint --toc-pages --pdf=all`):
+and a table of contents, list of figures and list of tables with page
+references (`mdprint --toc-pages --lof --lot --pdf=all`):
 [CS](https://filip-cokesh.github.io/mdprint/doc-cs-normal.pdf) ·
 [EN](https://filip-cokesh.github.io/mdprint/doc-en-normal.pdf) ·
 [DE](https://filip-cokesh.github.io/mdprint/doc-de-normal.pdf)
@@ -77,6 +79,13 @@ print it from Chrome, or publish it as-is.
   reads the page of every heading from the PDF and writes the numbers into
   the TOC; print picks the set matching the font size you chose
 - **PDF export** (`--pdf`, `--pdf=all`) through the same headless browser
+- **Equation numbering and cross-references** with LaTeX syntax —
+  `\label{eq:x}` in a display formula, `\eqref{eq:x}` / `\ref{x}` /
+  `\autoref{x}` in text; labels on figures (`{#fig:x}`) and captioned
+  tables (`Table: … {#tbl:x}`); numbers are resolved at build time, so the
+  author never types one. See [Cross-references and lists](#cross-references-and-lists)
+- **List of figures and list of tables** (`--lof`, `--lot`) at the end of
+  the document, with page numbers when `--toc-pages` is on
 - **Image handling** — paths resolved relative to the input, copies named
   `<slug>-<hash>`, cleanup driven by a manifest (mdprint never deletes
   anything it didn't create), optional `--fetch` for remote images with
@@ -147,6 +156,14 @@ margin = "2.5cm 2cm"
 [figures]
 prefix = "Obr."                 # figure caption prefix: "Obr. 1: …"
 numbering = true
+list = false                    # list of figures at the end (--lof)
+
+[tables]
+prefix = "Tab."                 # caption prefix for "Table: …" paragraphs
+list = false                    # list of tables at the end (--lot)
+
+[equations]
+numbering = "labeled"           # labeled | all | none — which $$…$$ get a number
 
 [fonts]                         # primary family overrides (embedded stay as fallback)
 serif = "Libertinus Serif"
@@ -173,7 +190,7 @@ email = "…"
 ```
 
 Documents may carry YAML front matter (`title`, `author`, `date`, `version`,
-`lang`, `template`, `page_numbers`, `toc_pages`, `font_size`) — `title` renders a document header, ISO dates are
+`lang`, `template`, `page_numbers`, `toc_pages`, `font_size`, `lof`, `lot`) — `title` renders a document header, ISO dates are
 typeset the Czech way (`2. 9. 2026`), `version` shows in the byline.
 
 A **template pack** is a folder with `pack.toml`, `template.css` and optional
@@ -198,8 +215,10 @@ Options:
   -o, --output <OUTPUT>      Output HTML file (default: next to input, .html)
       --lang <LANG>          Document language [possible values: cs, en, de]
       --toc                  Generate a table of contents (headings 1-3)
-      --toc-pages            Add print page numbers to the TOC (implies --toc;
-                             needs Chrome or Edge)
+      --toc-pages            Add print page numbers to the TOC and lists
+                             (implies --toc; needs Chrome or Edge)
+      --lof                  List of figures at the end of the document
+      --lot                  List of tables (captioned ones) at the end
       --font-size <SIZE>     Initial font size: small | normal | large
       --no-page-numbers      No page numbers in print
       --pdf[=all]            Also write PDF (all = one per font size;
@@ -215,6 +234,51 @@ Options:
 
 Exit code is non-zero on any error; missing images and invalid TeX report
 the source line.
+
+## Cross-references and lists
+
+Markdown has no equation numbers, and KaTeX only knows a manual `\tag`.
+mdprint resolves LaTeX-style labels at build time, so numbers are never
+typed by hand:
+
+```markdown
+$$ w_{\max} = \frac{5 q L^4}{384 E I} \label{eq:deflection} $$
+
+Formula \eqref{eq:deflection} rests on … (see \autoref{fig:beam} and \autoref{tbl:data}).
+
+![Static scheme of the beam](beam.png){#fig:beam}
+
+Table: Input data {#tbl:data}
+
+| L | q |
+|---|---|
+```
+
+- **Equations**: `\label{…}` anywhere in a display formula (`$$…$$`); the
+  label is stripped and `\tag{N}` added, typeset by KaTeX on the right.
+  By default only labelled equations are numbered (like LaTeX `equation`
+  vs. `equation*`); `[equations] numbering = "all"` numbers every display
+  formula, with `\notag` / `\nonumber` as opt-out. A formula with its own
+  `\tag` keeps it and references show that text. Numbers run through the
+  whole document (1, 2, 3 …).
+- **Figures**: `{#fig:x}` right after the image (any label name works).
+  Figures without a label still get an anchor `fig-N`.
+- **Tables**: a paragraph starting with `Table:`, `Tabulka:` or `Tabelle:`
+  (accepted in every language) immediately before a table is its caption,
+  typeset above the table as "Table 1: …"; a trailing `{#tbl:x}` is the
+  label. Tables without a caption are not numbered and not listed.
+- **References** in text (outside math): `\ref{x}` → bare number,
+  `\eqref{eq:x}` → "(3)", `\autoref{x}` → localized prefix with a
+  non-breaking space: *Eq. (3)*, *Fig. 2*, *Table 1* (cs: *rovnice (3)*,
+  *Obr. 2*, *Tab. 1*; de: *Gl. (3)*, *Abb. 2*, *Tab. 1*). All become links.
+  An unknown or duplicate label, or `\label` inside inline math, fails the
+  build with the source line. Labels: letters, digits and `: _ . -`,
+  starting with a letter.
+- **Lists**: `--lof` / `--lot` (front matter `lof: true`, `lot: true`;
+  `[figures] list`, `[tables] list`) append *List of Figures* / *List of
+  Tables* (*Seznam obrázků* / *Seznam tabulek*, *Abbildungsverzeichnis* /
+  *Tabellenverzeichnis*) after the body — on a new page in print. With
+  `--toc-pages` they get page numbers from the same measurement as the TOC.
 
 ### Page numbers — what to expect
 

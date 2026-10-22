@@ -17,6 +17,8 @@ pub fn options() -> Options<'static> {
     ext.front_matter_delimiter = Some("---".into());
     // Prázdný prefix: id kotvy = slug nadpisu.
     ext.header_id_prefix = Some(String::new());
+    // `![…](x.png){#fig:label}` — label obrázku pro křížové odkazy (xref.rs)
+    ext.link_attributes = true;
     // Nutné pro průchod HTML, které samy generují moduly math a highlight;
     // vedlejší efekt: projde i raw HTML autora (u osobního nástroje záměr).
     opts.render.r#unsafe = true;
@@ -47,6 +49,10 @@ pub struct FrontMatter {
     pub toc_pages: Option<bool>,
     /// Výchozí velikost písma: small | normal | large.
     pub font_size: Option<FontSize>,
+    /// Seznam obrázků na konci dokumentu.
+    pub lof: Option<bool>,
+    /// Seznam tabulek na konci dokumentu.
+    pub lot: Option<bool>,
 }
 
 /// YAML skalár (string i číslo) → `Option<String>`.
@@ -101,6 +107,31 @@ pub fn document_title<'a>(
         }
     }
     file_stem.to_string()
+}
+
+/// Odstavec, jehož jediným dítětem je obrázek s neprázdným popiskem
+/// → renderuje se jako `<figure>`.
+pub fn is_figure_paragraph<'a>(node: &'a AstNode<'a>) -> bool {
+    let mut children = node.children();
+    match (children.next(), children.next()) {
+        (Some(only), None) => is_figure_image(only),
+        _ => false,
+    }
+}
+
+/// Obrázek stojící sám v odstavci, s popiskem (alt text) — figura.
+pub fn is_figure_image<'a>(node: &'a AstNode<'a>) -> bool {
+    if !matches!(node.data.borrow().value, NodeValue::Image(_)) {
+        return false;
+    }
+    // popisek = děti uzlu obrázku (alt text)
+    let has_caption = node.first_child().is_some();
+    let standalone_in_paragraph = node
+        .parent()
+        .is_some_and(|p| matches!(p.data.borrow().value, NodeValue::Paragraph))
+        && node.previous_sibling().is_none()
+        && node.next_sibling().is_none();
+    has_caption && standalone_in_paragraph
 }
 
 /// Prostý text uzlu a jeho potomků (pro titulky, popisky).

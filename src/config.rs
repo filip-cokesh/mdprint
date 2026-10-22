@@ -5,6 +5,7 @@ use serde::Deserialize;
 
 use crate::cli::{Cli, FontSize, Lang, PdfMode};
 use crate::parse::FrontMatter;
+use crate::xref::EqNumbering;
 
 /// `mdprint.toml` vedle vstupu (nebo `--config`). Všechna pole volitelná.
 #[derive(Deserialize, Default, Debug)]
@@ -15,6 +16,8 @@ pub struct FileConfig {
     pub template: Option<String>,
     pub paper: Option<Paper>,
     pub figures: Option<Figures>,
+    pub tables: Option<Tables>,
+    pub equations: Option<Equations>,
     pub fonts: Option<Fonts>,
     pub math: Option<Math>,
     pub print: Option<Print>,
@@ -73,6 +76,26 @@ pub struct Figures {
     pub prefix: Option<String>,
     /// Číslovat obrázky (výchozí true)
     pub numbering: Option<bool>,
+    /// Seznam obrázků na konci dokumentu (výchozí false)
+    pub list: Option<bool>,
+}
+
+/// Tabulky s popiskem (`[tables]`): odstavec „Tabulka: …“ před tabulkou.
+#[derive(Deserialize, Default, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct Tables {
+    /// Prefix popisku, výchozí Tab. / Table / Tab. podle jazyka
+    pub prefix: Option<String>,
+    /// Seznam tabulek na konci dokumentu (výchozí false)
+    pub list: Option<bool>,
+}
+
+/// Číslování rovnic (`[equations]`).
+#[derive(Deserialize, Default, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct Equations {
+    /// labeled (výchozí) | all | none
+    pub numbering: Option<EqNumbering>,
 }
 
 #[derive(Deserialize, Default, Debug)]
@@ -91,6 +114,13 @@ pub struct Config {
     pub paper_margin: String,
     pub figure_prefix: String,
     pub figure_numbering: bool,
+    /// Prefix popisku tabulky („Tab.“ / „Table“ / „Tab.“).
+    pub table_prefix: String,
+    /// Které blokové rovnice číslovat.
+    pub eq_numbering: EqNumbering,
+    /// Seznam obrázků / tabulek na konci dokumentu.
+    pub lof: bool,
+    pub lot: bool,
     pub font_serif: String,
     pub font_sans: String,
     pub font_mono: String,
@@ -190,7 +220,11 @@ impl Config {
 
         let paper = file_cfg.paper.unwrap_or_default();
         let figures = file_cfg.figures.unwrap_or_default();
+        let tables = file_cfg.tables.unwrap_or_default();
+        let equations = file_cfg.equations.unwrap_or_default();
         let fonts = file_cfg.fonts.unwrap_or_default();
+        let lof = cli.lof || fm(|f| f.lof).or(figures.list).unwrap_or(false);
+        let lot = cli.lot || fm(|f| f.lot).or(tables.list).unwrap_or(false);
 
         let math = file_cfg.math.unwrap_or_default();
         let math_inline = math.inline.unwrap_or(0.95);
@@ -216,6 +250,12 @@ impl Config {
                 .into()
             }),
             figure_numbering: figures.numbering.unwrap_or(true),
+            table_prefix: tables
+                .prefix
+                .unwrap_or_else(|| crate::xref::default_table_prefix(lang).into()),
+            eq_numbering: equations.numbering.unwrap_or_default(),
+            lof,
+            lot,
             font_serif: fonts.serif.unwrap_or_else(|| "Libertinus Serif".into()),
             font_sans: fonts.sans.unwrap_or_else(|| "Libertinus Sans".into()),
             font_mono: fonts.mono.unwrap_or_else(|| "JetBrains Mono".into()),

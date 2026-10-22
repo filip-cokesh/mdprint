@@ -474,6 +474,130 @@ fn toc_pages_without_browser_warns_and_falls_back() {
     assert!(err.contains("--pdf vyžaduje Chrome nebo Edge"), "{err}");
 }
 
+/// Dokument s popsanou tabulkou a figurou pro testy seznamů (1×1 PNG).
+fn doc_with_table_and_figure(dir: &Path) -> PathBuf {
+    const PNG_1X1: &[u8] = &[
+        0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44,
+        0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x06, 0x00, 0x00, 0x00, 0x1F,
+        0x15, 0xC4, 0x89, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x44, 0x41, 0x54, 0x78, 0x9C, 0x63, 0xF8,
+        0xFF, 0xFF, 0x3F, 0x00, 0x05, 0xFE, 0x02, 0xFE, 0xA7, 0x35, 0x81, 0x84, 0x00, 0x00, 0x00,
+        0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82,
+    ];
+    fs::write(dir.join("bod.png"), PNG_1X1).unwrap();
+    let input = dir.join("doc.md");
+    let mut md = long_doc();
+    md.push_str(
+        "\n# Přílohy\n\nViz \\autoref{fig:bod}, \\autoref{tbl:data} a rovnici \\eqref{eq:x}.\n\n\
+         $$ x = 1 \\label{eq:x} $$\n\n\
+         ![Jeden bod](bod.png){#fig:bod}\n\n\
+         Tabulka: Vstupní data {#tbl:data}\n\n| a | b |\n|---|---|\n| 1 | 2 |\n",
+    );
+    fs::write(&input, md).unwrap();
+    input
+}
+
+#[test]
+fn lists_without_browser_fall_back_with_single_warning() {
+    let dir = tempfile::tempdir().unwrap();
+    let input = doc_with_table_and_figure(dir.path());
+
+    let mut c = cli(input);
+    c.toc_pages = true;
+    c.lof = true;
+    c.lot = true;
+    c.browser = Some(dir.path().join("neni-chrome.exe"));
+    let out = mdprint::run_full(&c).unwrap();
+    assert_eq!(
+        out.warnings.len(),
+        1,
+        "jedno měření = jedno varování: {:?}",
+        out.warnings
+    );
+    let html = fs::read_to_string(&out.html).unwrap();
+    assert!(
+        html.contains("<nav class=\"toc lof\">"),
+        "seznam obrázků bez čísel"
+    );
+    assert!(
+        html.contains("<nav class=\"toc lot\">"),
+        "seznam tabulek bez čísel"
+    );
+    assert!(!html.contains(r#"class="toc-page""#));
+    // kotvy sedí: id na figure/table/rovnici = href v seznamech a odkazech
+    assert!(html.contains("<figure id=\"fig:bod\">"));
+    assert!(html.contains("<figure class=\"table\" id=\"tbl:data\">"));
+    assert!(html.contains("<span id=\"eq:x\" class=\"katex-display\""));
+    assert!(html.contains("<a href=\"#fig:bod\"><span class=\"toc-num\">Obr.\u{a0}1</span>"));
+    assert!(html.contains("<a href=\"#tbl:data\"><span class=\"toc-num\">Tab.\u{a0}1</span>"));
+    assert!(html.contains("<a class=\"xref\" href=\"#eq:x\">(1)</a>"));
+    // seznamy jsou až za tělem dokumentu
+    let body_end = html.find("Vstupní data").unwrap();
+    assert!(html.find("<nav class=\"toc lof\">").unwrap() > body_end);
+    // žádné sondy po sobě nenechá
+    assert_eq!(
+        fs::read_dir(dir.path()).unwrap().count(),
+        4,
+        "doc.md, bod.png, doc.html, img_doc"
+    );
+}
+
+#[test]
+fn lists_from_front_matter_and_toml() {
+    let dir = tempfile::tempdir().unwrap();
+    let input = doc_with_table_and_figure(dir.path());
+
+    // bez voleb: žádné seznamy, ale id a odkazy ano
+    let html = fs::read_to_string(mdprint::run(&cli(input.clone())).unwrap()).unwrap();
+    assert!(!html.contains("toc lof") && !html.contains("toc lot"));
+    assert!(html.contains("<figure id=\"fig:bod\">"));
+
+    // [figures] list / [tables] list v tomlu + prefix tabulky
+    fs::write(
+        dir.path().join("mdprint.toml"),
+        "[figures]\nlist = true\n[tables]\nlist = true\nprefix = \"Tabulka\"\n",
+    )
+    .unwrap();
+    let html = fs::read_to_string(mdprint::run(&cli(input.clone())).unwrap()).unwrap();
+    assert!(html.contains("toc lof") && html.contains("toc lot"));
+    assert!(html.contains("<span class=\"tabnum\">Tabulka 1:</span>"));
+    assert!(html.contains("<a class=\"xref\" href=\"#tbl:data\">Tabulka\u{a0}1</a>"));
+
+    // front matter přebije toml
+    let md = fs::read_to_string(&input).unwrap();
+    fs::write(&input, format!("---\nlof: false\nlot: false\n---\n\n{md}")).unwrap();
+    let html = fs::read_to_string(mdprint::run(&cli(input)).unwrap()).unwrap();
+    assert!(!html.contains("toc lof") && !html.contains("toc lot"));
+}
+
+#[test]
+fn equation_numbering_all_mode_from_toml() {
+    let dir = tempfile::tempdir().unwrap();
+    let input = dir.path().join("doc.md");
+    fs::write(&input, "$$ a $$\n\n$$ b \\notag $$\n\n$$ c $$\n").unwrap();
+    fs::write(
+        dir.path().join("mdprint.toml"),
+        "[equations]\nnumbering = \"all\"\n",
+    )
+    .unwrap();
+    let html = fs::read_to_string(mdprint::run(&cli(input.clone())).unwrap()).unwrap();
+    assert!(html.contains("<span id=\"eq-1\" class=\"katex-display\""));
+    assert!(html.contains("<span id=\"eq-2\" class=\"katex-display\""));
+    let body = html.split("</style>").last().unwrap();
+    assert_eq!(
+        body.matches("class=\"katex-tag\"").count(),
+        2,
+        "dvě číslované rovnice"
+    );
+
+    // chybný label je chyba buildu s řádkem
+    fs::write(&input, "text\n\n\\eqref{eq:neni}\n").unwrap();
+    let err = format!("{:#}", mdprint::run(&cli(input)).unwrap_err());
+    assert!(
+        err.contains("neznámý odkaz") && err.contains("řádek 3"),
+        "{err}"
+    );
+}
+
 /// End-to-end s prohlížečem: čísla v obsahu = skutečné stránky nadpisů
 /// v PDF pro každou velikost písma. Bez Chrome/Edge se přeskočí.
 #[test]
@@ -483,11 +607,12 @@ fn toc_pages_match_printed_pdf() {
         return;
     };
     let dir = tempfile::tempdir().unwrap();
-    let input = dir.path().join("doc.md");
-    fs::write(&input, long_doc()).unwrap();
+    let input = doc_with_table_and_figure(dir.path());
 
     let mut c = cli(input);
     c.toc_pages = true;
+    c.lof = true;
+    c.lot = true;
     c.pdf = Some(mdprint::cli::PdfMode::All);
     c.browser = Some(browser);
     let out = mdprint::run_full(&c).unwrap();
@@ -500,7 +625,10 @@ fn toc_pages_match_printed_pdf() {
     )
     .unwrap();
     let rows: Vec<_> = re.captures_iter(&html).collect();
-    assert_eq!(rows.len(), 5, "pět položek obsahu");
+    // 6 nadpisů v obsahu + 1 položka seznamu obrázků + 1 položka seznamu tabulek
+    assert_eq!(rows.len(), 8, "položky obsahu a seznamů");
+    assert_eq!(&rows[6][1], "fig:bod");
+    assert_eq!(&rows[7][1], "tbl:data");
 
     for (i, pdf) in out.pdfs.iter().enumerate() {
         let dests = mdprint::paginate::named_destination_pages(pdf).unwrap();
@@ -524,10 +652,10 @@ fn toc_pages_match_printed_pdf() {
         last(2)
     );
 
-    // úklid: jen doc.md, doc.html a tři PDF
+    // úklid: jen doc.md, bod.png, doc.html, img_doc a tři PDF
     let names: Vec<String> = fs::read_dir(dir.path())
         .unwrap()
         .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
         .collect();
-    assert_eq!(names.len(), 5, "{names:?}");
+    assert_eq!(names.len(), 7, "{names:?}");
 }

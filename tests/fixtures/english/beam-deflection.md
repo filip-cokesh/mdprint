@@ -25,19 +25,19 @@ were read from tables; today a script of a few dozen lines does the job.
 
 The maximum deflection at midspan is given by
 
-$$w_{\max} = \frac{5\,q\,L^4}{384\,E\,I},$$
+$$w_{\max} = \frac{5\,q\,L^4}{384\,E\,I}, \label{eq:deflection}$$
 
 where $E$ is Young's modulus and $I$ the second moment of area. For steel,
 $E = 210\,\mathrm{GPa}$; timber is roughly ten times softer. Codes usually
 limit the relative deflection $w_{\max}/L$ to 1/250.
 
-The formula rests on the Bernoulli–Navier hypothesis, which neglects the
+Formula \eqref{eq:deflection} rests on the Bernoulli–Navier hypothesis, which neglects the
 shear contribution to deflection. What governs its magnitude is not
 slenderness as such but the **ratio of bending to shear stiffness**: for
 a uniform load,
 
 $$\frac{w_{\mathrm{V}}}{w_{\mathrm{M}}} = \frac{q L^2 / (8\,G\,A_{\mathrm{s}})}
-{5\,q\,L^4 / (384\,E\,I)} = 9.6\,\frac{E\,I}{G\,A_{\mathrm{s}}\,L^2},$$
+{5\,q\,L^4 / (384\,E\,I)} = 9.6\,\frac{E\,I}{G\,A_{\mathrm{s}}\,L^2}, \label{eq:shear}$$
 
 where $G$ is the shear modulus and $A_{\mathrm{s}}$ the shear area. Only for
 a homogeneous rectangular section does this reduce to
@@ -49,9 +49,11 @@ Timoshenko theory is appropriate.
 
 ## Input data and parametric study
 
-The following table summarises a parametric study of 36 combinations of
+\autoref{tbl:study} summarises a parametric study of 36 combinations of
 span and load. The table deliberately runs over one page to exercise the
 repeated table header in print.
+
+Table: Parametric deflection study — 36 combinations of span and load {#tbl:study}
 
 | no. | L [m] | q [kN/m] | E [GPa] | I [10⁻⁶ m⁴] | w_max [mm] | w/L [–] |
 |---:|------:|---------:|--------:|------------:|-----------:|--------:|
@@ -130,13 +132,13 @@ if __name__ == "__main__":
 
 ## Graphical results
 
-The deflection curves of both solutions are plotted in the following figure.
+The deflection curves of both solutions are plotted in \autoref{fig:curve}.
 
-![Deflection curve — analytical vs. numerical solution](graphs/curve.png)
+![Deflection curve — analytical vs. numerical solution](graphs/curve.png){#fig:curve}
 
-The static scheme, stored under the same file name in a different folder:
+The static scheme (\autoref{fig:scheme}), stored under the same file name in a different folder:
 
-![Static scheme of the simply supported beam](diagrams/curve.png)
+![Static scheme of the simply supported beam](diagrams/curve.png){#fig:scheme}
 
 ## Source vs. result
 
@@ -162,7 +164,8 @@ stay untouched.
 ## Conclusion
 
 The numerical solution differs from the analytical one by less than
-0.01 %, confirming both approaches. The inline relation
+0.01 %, confirming both approaches and formula \eqref{eq:deflection}; the shear
+contribution per equation \ref{eq:shear} is negligible at this slenderness. The inline relation
 $w(x) = \frac{q x (L^3 - 2Lx^2 + x^3)}{24 E I}$ can therefore be used for
 quick checks[^check]. A definition to close with:
 

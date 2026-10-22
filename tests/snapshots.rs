@@ -6,7 +6,9 @@ use std::path::Path;
 
 use mdprint::cli::Cli;
 
-fn build_fixture(name: &str, md_file: &str, template: Option<String>, toc: bool) -> String {
+/// `lists` = obsah + seznam obrázků a tabulek (`--toc --lof --lot`).
+fn build_fixture(name: &str, md_file: &str, template: Option<String>, lists: bool) -> String {
+    let toc = lists;
     let src = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures")
         .join(name);
@@ -18,6 +20,8 @@ fn build_fixture(name: &str, md_file: &str, template: Option<String>, toc: bool)
         output: None,
         lang: None,
         toc,
+        lof: lists,
+        lot: lists,
         fetch: false,
         config: None,
         template,
@@ -103,6 +107,11 @@ fn anglicky_showcase() {
     assert!(html.contains("Don\u{2019}t"));
     assert!(html.contains("\u{2014}"), "em dash chybí");
     assert!(html.contains("Fig. 1:"), "Fig. popisek figury chybí");
+    assert!(html.contains(">List of Figures</h2>"));
+    assert!(html.contains(">List of Tables</h2>"));
+    assert!(html.contains("<span class=\"tabnum\">Table 1:</span>"));
+    assert!(html.contains("<a class=\"xref\" href=\"#eq:deflection\">(1)</a>"));
+    assert!(html.contains("<a class=\"xref\" href=\"#fig:curve\">Fig.\u{a0}1</a>"));
     insta::assert_snapshot!("english", html);
 }
 
@@ -114,6 +123,11 @@ fn nemecky_showcase() {
     assert!(html.contains("z.\u{a0}B."));
     assert!(html.contains("Abb. 1:"), "Abb. popisek figury chybí");
     assert!(html.contains("04.09.2026"), "DIN datum v byline chybí");
+    assert!(html.contains(">Abbildungsverzeichnis</h2>"));
+    assert!(html.contains(">Tabellenverzeichnis</h2>"));
+    assert!(html.contains("<span class=\"tabnum\">Tab. 1:</span>"));
+    assert!(html.contains("<a class=\"xref\" href=\"#eq:durchbiegung\">(1)</a>"));
+    assert!(html.contains("<a class=\"xref\" href=\"#fig:biegelinie\">Abb.\u{a0}1</a>"));
     insta::assert_snapshot!("german", html);
 }
 

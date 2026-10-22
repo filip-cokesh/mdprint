@@ -64,19 +64,19 @@ dnes výpočet zvládne i skript o desítkách řádků.
 
 Maximální průhyb uprostřed rozpětí je dán vztahem
 
-$$w_{\max} = \frac{5\,q\,L^4}{384\,E\,I},$$
+$$w_{\max} = \frac{5\,q\,L^4}{384\,E\,I}, \label{eq:pruhyb}$$
 
 kde $E$ je modul pružnosti materiálu a $I$ moment setrvačnosti průřezu.
 Pro ocel je typicky $E = 210\,\mathrm{GPa}$; u dřeva počítáme s hodnotou
 řádově desetkrát nižší. Poměrný průhyb $w_{\max}/L$ nemá dle normy
 překročit hodnotu 1/250.
 
-Uvedený vztah plyne z Bernoulliho–Navierovy hypotézy, která zanedbává
+Vztah \eqref{eq:pruhyb} plyne z Bernoulliho–Navierovy hypotézy, která zanedbává
 smykovou složku průhybu. O její velikosti nerozhoduje štíhlost sama o sobě,
 ale **poměr ohybové a smykové tuhosti**: pro rovnoměrné zatížení platí
 
 $$\frac{w_{\mathrm{V}}}{w_{\mathrm{M}}} = \frac{q L^2 / (8\,G\,A_{\mathrm{s}})}
-{5\,q\,L^4 / (384\,E\,I)} = 9{,}6\,\frac{E\,I}{G\,A_{\mathrm{s}}\,L^2},$$
+{5\,q\,L^4 / (384\,E\,I)} = 9{,}6\,\frac{E\,I}{G\,A_{\mathrm{s}}\,L^2}, \label{eq:smyk}$$
 
 kde $G$ je modul pružnosti ve smyku a $A_{\mathrm{s}}$ smyková plocha průřezu.
 Teprve u homogenního obdélníkového průřezu se výraz zjednoduší na
@@ -87,9 +87,11 @@ být smyk významný i u velmi štíhlého nosníku a je namístě Timoshenkova 
 
 ## Vstupní data a parametrická studie
 
-Následující tabulka shrnuje výsledky parametrické studie pro 36 kombinací
-rozpětí a zatížení. Tabulka záměrně přesahuje jednu stránku, aby ověřila
+Výsledky parametrické studie pro 36 kombinací rozpětí a zatížení shrnuje
+\autoref{tbl:studie}. Tabulka záměrně přesahuje jednu stránku, aby ověřila
 opakování hlavičky při tisku.
+
+Tabulka: Parametrická studie průhybu — 36 kombinací rozpětí a zatížení {#tbl:studie}
 
 | č. | L [m] | q [kN/m] | E [GPa] | I [10⁻⁶ m⁴] | w_max [mm] | w/L [–] |
 |---:|------:|---------:|--------:|------------:|-----------:|--------:|
@@ -168,13 +170,13 @@ if __name__ == "__main__":
 
 ## Grafické výsledky
 
-Průhybové čáry obou řešení jsou vykresleny na následujícím obrázku.
+Průhybové čáry obou řešení jsou vykresleny na \autoref{fig:prubeh}.
 
-![Průhybová čára — porovnání analytického a numerického řešení](grafy/průběh.png)
+![Průhybová čára — porovnání analytického a numerického řešení](grafy/průběh.png){#fig:prubeh}
 
-Statické schéma úlohy se stejnojmenným souborem z jiné složky:
+Statické schéma úlohy (\autoref{fig:schema}) se stejnojmenným souborem z jiné složky:
 
-![Statické schéma prostě podepřeného nosníku](schemata/průběh.png)
+![Statické schéma prostě podepřeného nosníku](schemata/průběh.png){#fig:schema}
 
 ## Zdroj vs. výsledek
 
@@ -207,7 +209,8 @@ zůstanou beze změny.
 ## Závěr
 
 Numerické řešení se od analytického liší o méně než 0,01 %, což potvrzuje
-správnost obou přístupů. Inline vztah $w(x) = \frac{q x (L^3 - 2Lx^2 + x^3)}{24 E I}$
+správnost obou přístupů i vztahu \eqref{eq:pruhyb}; smykový příspěvek
+dle rovnice \ref{eq:smyk} je u řešené štíhlosti zanedbatelný. Inline vztah $w(x) = \frac{q x (L^3 - 2Lx^2 + x^3)}{24 E I}$
 lze proto bez obav používat pro rychlé posouzení[^posudek]. Definiční obor:
 
 Mezní stav použitelnosti
@@ -224,6 +227,6 @@ Mezní stav použitelnosti
 <iframe src="doc-cs.html" title="mdprint output"></iframe>
 </section>
 </main>
-<footer>mdprint --toc-pages --pdf=all pruzkum-pruhybu.md · <a href="https://github.com/filip-cokesh/mdprint">github.com/filip-cokesh/mdprint</a> · <a href="https://crates.io/crates/mdprint">crates.io/crates/mdprint</a></footer>
+<footer>mdprint --toc-pages --lof --lot --pdf=all pruzkum-pruhybu.md · <a href="https://github.com/filip-cokesh/mdprint">github.com/filip-cokesh/mdprint</a> · <a href="https://crates.io/crates/mdprint">crates.io/crates/mdprint</a></footer>
 </body>
 </html>

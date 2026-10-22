@@ -26,20 +26,20 @@ Dutzend Zeilen.
 
 Die maximale Durchbiegung in Feldmitte beträgt
 
-$$w_{\max} = \frac{5\,q\,L^4}{384\,E\,I},$$
+$$w_{\max} = \frac{5\,q\,L^4}{384\,E\,I}, \label{eq:durchbiegung}$$
 
 wobei $E$ der Elastizitätsmodul und $I$ das Flächenträgheitsmoment ist.
 Für Stahl gilt $E = 210\,\mathrm{GPa}$; Holz ist rund zehnmal weicher.
 Die Norm begrenzt die bezogene Durchbiegung $w_{\max}/L$ üblicherweise
 auf 1/250.
 
-Die Formel beruht auf der Bernoulli-Navier-Hypothese, die den Schubanteil
+Formel \eqref{eq:durchbiegung} beruht auf der Bernoulli-Navier-Hypothese, die den Schubanteil
 der Durchbiegung vernachlässigt. Über dessen Größe entscheidet nicht die
 Schlankheit an sich, sondern das **Verhältnis von Biege- zu Schubsteifigkeit**:
 für Gleichlast gilt
 
 $$\frac{w_{\mathrm{V}}}{w_{\mathrm{M}}} = \frac{q L^2 / (8\,G\,A_{\mathrm{s}})}
-{5\,q\,L^4 / (384\,E\,I)} = 9{,}6\,\frac{E\,I}{G\,A_{\mathrm{s}}\,L^2},$$
+{5\,q\,L^4 / (384\,E\,I)} = 9{,}6\,\frac{E\,I}{G\,A_{\mathrm{s}}\,L^2}, \label{eq:schub}$$
 
 wobei $G$ der Schubmodul und $A_{\mathrm{s}}$ die Schubfläche ist. Erst beim
 homogenen Rechteckquerschnitt vereinfacht sich der Ausdruck zu
@@ -52,9 +52,11 @@ angebracht.
 
 ## Eingangsdaten und Parameterstudie
 
-Die folgende Tabelle fasst eine Parameterstudie mit 36 Kombinationen aus
+\autoref{tbl:studie} fasst eine Parameterstudie mit 36 Kombinationen aus
 Spannweite und Last zusammen. Sie läuft absichtlich über eine Seite, um die
 Wiederholung des Tabellenkopfs im Druck zu prüfen.
+
+Tabelle: Parameterstudie der Durchbiegung — 36 Kombinationen aus Spannweite und Last {#tbl:studie}
 
 | Nr. | L [m] | q [kN/m] | E [GPa] | I [10⁻⁶ m⁴] | w_max [mm] | w/L [–] |
 |---:|------:|---------:|--------:|------------:|-----------:|--------:|
@@ -133,14 +135,14 @@ if __name__ == "__main__":
 
 ## Grafische Ergebnisse
 
-Die Biegelinien beider Lösungen zeigt die folgende Abbildung.
+Die Biegelinien beider Lösungen zeigt \autoref{fig:biegelinie}.
 
-![Biegelinie — Vergleich der analytischen und numerischen Lösung](grafiken/verlauf.png)
+![Biegelinie — Vergleich der analytischen und numerischen Lösung](grafiken/verlauf.png){#fig:biegelinie}
 
-Das statische System, gespeichert unter demselben Dateinamen in einem
-anderen Ordner:
+Das statische System (\autoref{fig:system}), gespeichert unter demselben
+Dateinamen in einem anderen Ordner:
 
-![Statisches System des Einfeldträgers](schemata/verlauf.png)
+![Statisches System des Einfeldträgers](schemata/verlauf.png){#fig:system}
 
 ## Quelle vs. Ergebnis
 
@@ -166,7 +168,8 @@ gesetzt; Code und Pfade bleiben unberührt.
 ## Fazit
 
 Die numerische Lösung weicht um weniger als 0,01 % von der analytischen ab,
-was beide Ansätze bestätigt. Die Beziehung
+was beide Ansätze und Formel \eqref{eq:durchbiegung} bestätigt; der Schubanteil
+nach Gleichung \ref{eq:schub} ist bei dieser Schlankheit vernachlässigbar. Die Beziehung
 $w(x) = \frac{q x (L^3 - 2Lx^2 + x^3)}{24 E I}$ eignet sich daher für
 schnelle Nachweise[^nachweis]. Zum Abschluss eine Definition:
 

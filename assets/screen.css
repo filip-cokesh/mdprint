@@ -269,6 +269,16 @@ figcaption {
 }
 .fignum { font-weight: 700; }
 
+/* tabulka s popiskem („Tabulka: …“ před tabulkou): popisek nad tabulkou */
+figure.table { margin: 1.4em 0; }
+figure.table figcaption { margin: 0 0 0.4em; }
+figure.table table { margin-top: 0; }
+.tabnum { font-weight: 700; }
+
+/* křížové odkazy \ref / \eqref / \autoref (xref.rs) */
+a.xref { text-decoration: none; }
+a.xref:hover { text-decoration: underline; }
+
 /* ---- obsah (--toc) ---- */
 nav.toc {
   margin: 0 0 2.5rem;
@@ -298,6 +308,17 @@ nav.toc a { text-decoration: none; color: inherit; }
 nav.toc a:hover { text-decoration: underline; }
 /* čísla stran (--toc-pages) dávají smysl jen v tisku — print.css je zobrazí */
 nav.toc .toc-leader, nav.toc .toc-page { display: none; }
+
+/* seznam obrázků / tabulek (--lof, --lot): na konci dokumentu, číslo
+   položky nese „Obr. 1“ místo CSS counteru obsahu */
+nav.toc.lof, nav.toc.lot { margin: 2.5rem 0 0; }
+nav.toc.lof li::before, nav.toc.lot li::before { content: none; counter-increment: none; }
+.toc-num {
+  font-weight: 600;
+  color: var(--c-muted);
+  margin-right: 0.6em;
+  white-space: nowrap;
+}
 
 /* ---- doladění KaTeX vůči Libertinusu ----
    KaTeX default 1.21em je kalibrovaný na jiné poměry; x-výšky KaTeX_Main

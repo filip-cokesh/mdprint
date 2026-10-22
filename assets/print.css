@@ -46,6 +46,9 @@
 
   figure, tr, pre { break-inside: avoid; }
   blockquote { break-inside: avoid; }
+  /* dlouhá tabulka s popiskem se přes stránky lámat smí; popisek drží s tabulkou */
+  figure.table { break-inside: auto; }
+  figure.table figcaption { break-after: avoid; }
 
   /* opakování hlavičky tabulky přes stránky — vyžaduje skutečný table display
      (screen.css dává tabulkám display: block kvůli scrollu na mobilu) */
@@ -129,6 +132,13 @@
   html:has(#fs-small:checked) nav.toc .toc-page::after { content: attr(data-s); }
   html:has(#fs-large:checked) nav.toc .toc-page::after { content: attr(data-l); }
 
-  /* … ale ne u interních kotev a poznámek pod čarou */
-  a.anchor::after, .footnote-ref a::after, a.footnote-backref::after { content: none; }
+  /* seznam obrázků / tabulek: na nové stránce (druhý seznam hned za prvním);
+     položka bez counteru → žádný grid, odkaz je flex řádek s vodicími tečkami */
+  nav.toc.lof, nav.toc.lot { break-before: page; }
+  nav.toc.lof + nav.toc.lot { break-before: auto; }
+  nav.toc.lof.toc-pages li, nav.toc.lot.toc-pages li { display: block; }
+  nav.toc .toc-num { flex: none; }
+
+  /* … ale ne u interních kotev, poznámek pod čarou a křížových odkazů */
+  a.anchor::after, .footnote-ref a::after, a.footnote-backref::after, a.xref::after { content: none; }
 }

@@ -27,6 +27,15 @@ pub struct Cli {
     #[arg(long)]
     pub toc_pages: bool,
 
+    /// Seznam obrázků na konci dokumentu (s --toc-pages i čísla stran)
+    #[arg(long)]
+    pub lof: bool,
+
+    /// Seznam tabulek na konci dokumentu (jen tabulky s popiskem
+    /// „Tabulka: …“ / „Table: …“ / „Tabelle: …“ v odstavci před tabulkou)
+    #[arg(long)]
+    pub lot: bool,
+
     /// Výchozí velikost písma (přepínač A/A/A v HTML i velikost v --pdf)
     #[arg(long, value_enum)]
     pub font_size: Option<FontSize>,

@@ -4,6 +4,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.9.0] - 2026-10-22
+
+### Added
+- **Equation numbering** (LaTeX syntax): `\label{eq:x}` anywhere in a
+  display formula gives it a number, typeset by KaTeX as `\tag` on the
+  right. By default only labelled equations are numbered
+  (`[equations] numbering = "labeled"`); `"all"` numbers every `$$…$$`
+  with `\notag` / `\nonumber` as opt-out. An equation with its own `\tag`
+  keeps it.
+- **Cross-references** in text: `\ref{x}` → bare number, `\eqref{eq:x}`
+  → "(3)", `\autoref{x}` → localized prefix + number ("rovnice (3)",
+  "Obr. 2", "Tab. 1" / "Eq. (3)", "Fig. 2", "Table 1" / "Gl. (3)",
+  "Abb. 2", "Tab. 1"), all as links. Figures take a label via
+  `![…](img.png){#fig:x}`; unknown or duplicate labels fail the build
+  with the source line.
+- **Table captions**: a paragraph starting with `Table:` / `Tabulka:` /
+  `Tabelle:` immediately before a table becomes its caption above the
+  table ("Tab. 1: …"), optionally labelled with a trailing `{#tbl:x}`.
+  Prefix configurable via `[tables] prefix`.
+- **List of figures / list of tables** (`--lof`, `--lot`; front matter
+  `lof:` / `lot:`; `[figures] list`, `[tables] list`) at the end of the
+  document, on a new page in print. With `--toc-pages` they get measured
+  page numbers from the same headless render as the TOC.
+- Figures, captioned tables and numbered equations carry `id` anchors
+  (label, or `fig-N` / `tab-N` / `eq-N`).
+
 ## [0.8.1] - 2026-10-04
 
 ### Fixed

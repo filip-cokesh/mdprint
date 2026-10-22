@@ -10,6 +10,7 @@ pub mod paginate;
 pub mod parse;
 pub mod render;
 pub mod typo;
+pub mod xref;
 
 use std::fs;
 use std::path::PathBuf;
@@ -73,8 +74,28 @@ pub fn run_full(cli: &Cli) -> Result<RunOutput> {
         .context("výstupní cesta nemá jméno souboru")?;
     let img_dir_name = format!("img_{stem}");
 
+    // křížové odkazy před typografií — ta by labely v textu přepsala
+    let refs = xref::collect(root, cfg.eq_numbering)?;
+    let prefixes = xref::Prefixes {
+        figure: cfg.figure_prefix.clone(),
+        table: cfg.table_prefix.clone(),
+        lang: cfg.lang,
+    };
+    xref::resolve(&arena, root, &refs, &prefixes)?;
+
     typo::apply(root, cfg.lang)?;
     hyphen::Hyphenator::new(cfg.lang)?.apply(root);
+    // položky seznamů až po typografii (text popisků = sazba v dokumentu)
+    let lof_entries = if cfg.lof {
+        xref::list_entries(root, xref::Kind::Figure, &cfg.figure_prefix)
+    } else {
+        Vec::new()
+    };
+    let lot_entries = if cfg.lot {
+        xref::list_entries(root, xref::Kind::Table, &cfg.table_prefix)
+    } else {
+        Vec::new()
+    };
     math::MathRenderer::with_sizes(cfg.math_inline, cfg.math_display).render_all(root)?;
     highlight::Highlighter::new().highlight_all(root)?;
 
@@ -98,12 +119,38 @@ pub fn run_full(cli: &Cli) -> Result<RunOutput> {
     } else {
         Vec::new()
     };
-    let toc_mode = if cfg.toc_pages {
+    // obsah a seznamy: s --toc-pages nejdřív se zástupnými čísly „000“
+    let render_lists = |pages: &render::TocPages| {
+        (
+            render::render_toc(&toc_entries, cfg.lang, pages.clone()),
+            render::render_list(
+                render::ListKind::Figures,
+                &lof_entries,
+                cfg.lang,
+                pages.clone(),
+            ),
+            render::render_list(
+                render::ListKind::Tables,
+                &lot_entries,
+                cfg.lang,
+                pages.clone(),
+            ),
+        )
+    };
+    let initial_mode = if cfg.toc_pages {
         render::TocPages::Placeholder
     } else {
         render::TocPages::Off
     };
-    let toc = render::render_toc(&toc_entries, cfg.lang, toc_mode);
+    let (toc, lof, lot) = render_lists(&initial_mode);
+    let end_lists = match (&lof, &lot) {
+        (None, None) => None,
+        (f, t) => Some(format!(
+            "{}{}",
+            f.as_deref().unwrap_or_default(),
+            t.as_deref().unwrap_or_default()
+        )),
+    };
     let body = render::body_html(root, &opts, &cfg)?;
     let page = render::page_html(
         &title,
@@ -111,6 +158,7 @@ pub fn run_full(cli: &Cli) -> Result<RunOutput> {
         &cfg,
         template_pack.as_ref(),
         toc.as_deref(),
+        end_lists.as_deref(),
         &body,
     )?;
 
@@ -119,20 +167,25 @@ pub fn run_full(cli: &Cli) -> Result<RunOutput> {
 
     let mut warnings = Vec::new();
     let mut page = page;
-    // čísla stran v obsahu: tři sondy se zástupnými čísly → doplnit čísla;
-    // při selhání obsah bez čísel (HTML je i tak použitelné) + varování
-    if let (true, Some(placeholder_toc)) = (cfg.toc_pages, toc.as_deref()) {
+    // čísla stran v obsahu a seznamech: tři sondy se zástupnými čísly →
+    // doplnit čísla (jedno měření pokryje všechny kotvy); při selhání
+    // seznamy bez čísel (HTML je i tak použitelné) + varování
+    if cfg.toc_pages && (toc.is_some() || lof.is_some() || lot.is_some()) {
         let measured = paginate::find_browser(cfg.browser.as_deref())
             .and_then(|b| paginate::measure(&b, &page, &out_dir, &stem));
-        let final_toc = match &measured {
-            Ok(map) => render::render_toc(&toc_entries, cfg.lang, render::TocPages::Numbers(map)),
+        let final_mode = match &measured {
+            Ok(map) => render::TocPages::Numbers(map),
             Err(e) => {
-                warnings.push(format!("čísla stran v obsahu vynechána: {e:#}"));
-                render::render_toc(&toc_entries, cfg.lang, render::TocPages::Off)
+                warnings.push(format!("čísla stran v obsahu a seznamech vynechána: {e:#}"));
+                render::TocPages::Off
+            }
+        };
+        let (toc2, lof2, lot2) = render_lists(&final_mode);
+        for (placeholder, fresh) in [(&toc, toc2), (&lof, lof2), (&lot, lot2)] {
+            if let (Some(p), Some(f)) = (placeholder, fresh) {
+                page = page.replacen(p, &f, 1);
             }
         }
-        .expect("obsah má položky");
-        page = page.replacen(placeholder_toc, &final_toc, 1);
     }
 
     fs::write(&out_html, &page).with_context(|| format!("nelze zapsat {}", out_html.display()))?;

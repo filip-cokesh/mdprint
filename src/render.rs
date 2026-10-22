@@ -7,31 +7,64 @@ use std::fmt::Write as _;
 use crate::assets;
 use crate::cli::Lang;
 use crate::config::Config;
-use crate::parse::{FrontMatter, collect_text};
+use crate::parse::{FrontMatter, collect_text, is_figure_image, is_figure_paragraph};
+use crate::xref::{self, is_table_caption, node_id};
 
-/// Stav vlastního formatteru: číslování obrázků.
+pub use crate::xref::ListEntry;
+
+/// Stav vlastního formatteru: číslování obrázků a tabulek.
 #[derive(Default)]
 pub struct RenderState {
     figure_prefix: String,
     figure_numbering: bool,
     figures: usize,
+    table_prefix: String,
+    tables: usize,
 }
 
 // Vlastní formatter: `![Popisek](…)` samostatně v odstavci → <figure> + <figcaption>
-// s číslováním „Obr. N“. Vše ostatní deleguje na výchozí comrak rendering.
+// s číslováním „Obr. N“; odstavec `Tabulka: …` před tabulkou (označený v xref.rs)
+// → <figure class="table"> + <figcaption> „Tab. N“. Vše ostatní deleguje na
+// výchozí comrak rendering. Id figur/tabulek přiděluje xref.rs (label nebo
+// `fig-N`/`tab-N`); čísla se počítají ve stejném pořadí dokumentu.
 create_formatter!(DocFormatter<RenderState>, {
     NodeValue::Paragraph => |context, node, entering| {
         if is_figure_paragraph(node) {
             if entering {
                 context.cr()?;
-                context.write_str("<figure>")?;
+                context.write_str("<figure")?;
+                write_id(context, node.first_child())?;
+                context.write_str(">")?;
             } else {
                 context.write_str("</figure>")?;
+                context.lf()?;
+            }
+        } else if is_table_caption(node) {
+            if entering {
+                context.user.tables += 1;
+                context.cr()?;
+                context.write_str("<figure class=\"table\"")?;
+                write_id(context, node.next_sibling())?;
+                context.write_str("><figcaption><span class=\"tabnum\">")?;
+                let label = format!("{} {}:", context.user.table_prefix, context.user.tables);
+                context.escape(&label)?;
+                context.write_str("</span> ")?;
+            } else {
+                context.write_str("</figcaption>")?;
                 context.lf()?;
             }
         } else {
             return format_node_default(context, node, entering);
         }
+    },
+    NodeValue::Table(..) => |context, node, entering| {
+        let captioned = node.previous_sibling().is_some_and(is_table_caption);
+        let rendering = format_node_default(context, node, entering)?;
+        if captioned && !entering {
+            context.write_str("</figure>")?;
+            context.lf()?;
+        }
+        return Ok(rendering);
     },
     NodeValue::Image(ref nl) => |context, node, entering| {
         if is_figure_image(node) {
@@ -59,27 +92,17 @@ create_formatter!(DocFormatter<RenderState>, {
     },
 });
 
-/// Odstavec, jehož jediným dítětem je obrázek s neprázdným popiskem.
-fn is_figure_paragraph<'a>(node: &'a AstNode<'a>) -> bool {
-    let mut children = node.children();
-    match (children.next(), children.next()) {
-        (Some(only), None) => is_figure_image(only),
-        _ => false,
+/// ` id="…"` z atributů uzlu (label nebo pořadové id z xref.rs).
+fn write_id<'a>(
+    context: &mut comrak::html::Context<RenderState>,
+    node: Option<&'a AstNode<'a>>,
+) -> std::fmt::Result {
+    if let Some(id) = node.and_then(node_id) {
+        context.write_str(" id=\"")?;
+        context.escape(&id)?;
+        context.write_str("\"")?;
     }
-}
-
-fn is_figure_image<'a>(node: &'a AstNode<'a>) -> bool {
-    if !matches!(node.data.borrow().value, NodeValue::Image(_)) {
-        return false;
-    }
-    // popisek = děti uzlu obrázku (alt text)
-    let has_caption = node.first_child().is_some();
-    let standalone_in_paragraph = node
-        .parent()
-        .is_some_and(|p| matches!(p.data.borrow().value, NodeValue::Paragraph))
-        && node.previous_sibling().is_none()
-        && node.next_sibling().is_none();
-    has_caption && standalone_in_paragraph
+    Ok(())
 }
 
 /// AST → HTML fragment těla dokumentu (s figure/figcaption).
@@ -89,6 +112,8 @@ pub fn body_html<'a>(root: &'a AstNode<'a>, opts: &Options, cfg: &Config) -> Res
         figure_prefix: cfg.figure_prefix.clone(),
         figure_numbering: cfg.figure_numbering,
         figures: 0,
+        table_prefix: cfg.table_prefix.clone(),
+        tables: 0,
     };
     DocFormatter::format_document(root, opts, &mut out, state)?;
     Ok(out)
@@ -101,6 +126,7 @@ pub fn page_html(
     cfg: &Config,
     pack: Option<&crate::pack::TemplatePack>,
     toc: Option<&str>,
+    end_lists: Option<&str>,
     body: &str,
 ) -> Result<String> {
     let mut env = minijinja::Environment::new();
@@ -215,6 +241,7 @@ pub fn page_html(
             pack_fonts_css => safe(pack.map(|p| p.fonts_css()).unwrap_or_default()),
             pack_css => safe(pack.map(|p| p.css.clone()).unwrap_or_default()),
             toc => toc.map(|t| safe(t.to_string())),
+            end_lists => end_lists.map(|t| safe(t.to_string())),
             fonts_css => safe(assets::fonts_css()),
             katex_fonts_css => safe(assets::katex_fonts_css()),
             vars_css => safe(vars_css(cfg)),
@@ -272,7 +299,8 @@ pub struct TocEntry {
 /// Čísla stran jedné položky obsahu pro malé / střední / velké písmo.
 pub type PageTriple = [Option<u32>; 3];
 
-/// Jak vykreslit čísla stran v obsahu.
+/// Jak vykreslit čísla stran v obsahu a seznamech.
+#[derive(Clone)]
 pub enum TocPages<'a> {
     /// Bez čísel (prostý `--toc`).
     Off,
@@ -337,31 +365,10 @@ pub fn render_toc(entries: &[TocEntry], lang: Lang, pages: TocPages) -> Option<S
         if depth == target && !html.ends_with("<ol>\n") {
             html.push_str("</li>\n");
         }
-        let mut escaped = String::new();
         // escapování textu položky (id je už jen bezpečný slug z anchorizeru)
-        for c in entry.text.chars() {
-            match c {
-                '&' => escaped.push_str("&amp;"),
-                '<' => escaped.push_str("&lt;"),
-                '>' => escaped.push_str("&gt;"),
-                _ => escaped.push(c),
-            }
-        }
+        let escaped = escape_text(&entry.text);
         let id = &entry.id;
-        let page_span = |[s, m, l]: [String; 3]| {
-            format!(
-                "<span class=\"toc-leader\"></span>\
-                 <span class=\"toc-page\" data-s=\"{s}\" data-m=\"{m}\" data-l=\"{l}\"></span>"
-            )
-        };
-        let suffix = match &pages {
-            TocPages::Off => String::new(),
-            TocPages::Placeholder => page_span(["000".into(), "000".into(), "000".into()]),
-            TocPages::Numbers(map) => {
-                let triple = map.get(id).copied().unwrap_or_default();
-                page_span(triple.map(|p| p.map(|n| n.to_string()).unwrap_or_default()))
-            }
-        };
+        let suffix = page_suffix(&pages, id);
         if matches!(pages, TocPages::Off) {
             let _ = write!(html, "<li><a href=\"#{id}\">{escaped}</a>");
         } else {
@@ -377,6 +384,100 @@ pub fn render_toc(entries: &[TocEntry], lang: Lang, pages: TocPages) -> Option<S
         depth -= 1;
     }
     html.push_str("</nav>\n");
+    Some(html)
+}
+
+fn escape_text(text: &str) -> String {
+    let mut escaped = String::with_capacity(text.len());
+    for c in text.chars() {
+        match c {
+            '&' => escaped.push_str("&amp;"),
+            '<' => escaped.push_str("&lt;"),
+            '>' => escaped.push_str("&gt;"),
+            _ => escaped.push(c),
+        }
+    }
+    escaped
+}
+
+/// Vodicí tečky + `<span class="toc-page">` podle režimu; `Off` → nic.
+fn page_suffix(pages: &TocPages, id: &str) -> String {
+    let page_span = |[s, m, l]: [String; 3]| {
+        format!(
+            "<span class=\"toc-leader\"></span>\
+             <span class=\"toc-page\" data-s=\"{s}\" data-m=\"{m}\" data-l=\"{l}\"></span>"
+        )
+    };
+    match pages {
+        TocPages::Off => String::new(),
+        TocPages::Placeholder => page_span(["000".into(), "000".into(), "000".into()]),
+        TocPages::Numbers(map) => {
+            let triple = map.get(id).copied().unwrap_or_default();
+            page_span(triple.map(|p| p.map(|n| n.to_string()).unwrap_or_default()))
+        }
+    }
+}
+
+/// Seznam obrázků (`--lof`) nebo tabulek (`--lot`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ListKind {
+    Figures,
+    Tables,
+}
+
+impl ListKind {
+    fn title(self, lang: Lang) -> &'static str {
+        match (self, lang) {
+            (ListKind::Figures, Lang::Cs) => "Seznam obrázků",
+            (ListKind::Figures, Lang::En) => "List of Figures",
+            (ListKind::Figures, Lang::De) => "Abbildungsverzeichnis",
+            (ListKind::Tables, Lang::Cs) => "Seznam tabulek",
+            (ListKind::Tables, Lang::En) => "List of Tables",
+            (ListKind::Tables, Lang::De) => "Tabellenverzeichnis",
+        }
+    }
+
+    fn class(self) -> &'static str {
+        match self {
+            ListKind::Figures => "lof",
+            ListKind::Tables => "lot",
+        }
+    }
+}
+
+/// Plochý seznam `<nav class="toc lof|lot">` se stejným markupem položek jako
+/// obsah (`toc-text`, `toc-leader`, `toc-page`), jen místo CSS counteru nese
+/// každá položka `<span class="toc-num">Obr. 1</span>`.
+pub fn render_list(
+    kind: ListKind,
+    entries: &[xref::ListEntry],
+    lang: Lang,
+    pages: TocPages,
+) -> Option<String> {
+    if entries.is_empty() {
+        return None;
+    }
+    let pages_class = if matches!(pages, TocPages::Off) {
+        ""
+    } else {
+        " toc-pages"
+    };
+    let mut html = format!(
+        "<nav class=\"toc {}{pages_class}\">\n<h2 class=\"toc-title\">{}</h2>\n<ol>\n",
+        kind.class(),
+        kind.title(lang)
+    );
+    for entry in entries {
+        let _ = writeln!(
+            html,
+            "<li><a href=\"#{}\"><span class=\"toc-num\">{}</span><span class=\"toc-text\">{}</span>{}</a></li>",
+            entry.id,
+            escape_text(&entry.label),
+            escape_text(&entry.text),
+            page_suffix(&pages, &entry.id)
+        );
+    }
+    html.push_str("</ol>\n</nav>\n");
     Some(html)
 }
 

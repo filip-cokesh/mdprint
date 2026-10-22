@@ -64,6 +64,16 @@ impl MathRenderer {
                 self.inline_scale
             };
             html = tag_wide_math(&html, &m.literal, m.display_math, scale);
+            // číslovaná rovnice (xref.rs) nese id → kotva pro \eqref i PDF /Dests
+            if m.display_math
+                && let Some(id) = data.attrs.as_ref().and_then(|a| a.id.as_deref())
+            {
+                html = html.replacen(
+                    "<span class=\"katex-display",
+                    &format!("<span id=\"{id}\" class=\"katex-display"),
+                    1,
+                );
+            }
             data.value = NodeValue::HtmlInline(html);
         }
         Ok(())
