@@ -1,12 +1,21 @@
 version: 2
 updates:
-  # pinned action SHAs (supply-chain hardening) — Dependabot keeps them current
+  # pinned action SHAs (supply-chain hardening) — Dependabot keeps them current;
+  # all action bumps land in one PR (upload/download-artifact must move together)
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+  # cargo: minor+patch bumps in one PR, each major (API change) separately
   - package-ecosystem: cargo
     directory: /
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    groups:
+      cargo-minor:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
