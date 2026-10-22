@@ -23,7 +23,7 @@ exclude = [
 anyhow = "1"
 base64 = "0.23"
 blake3 = "1"
-minijinja = "2"
+minijinja = "3"
 clap = { version = "4", features = ["derive"] }
 comrak = "0.55"
 deunicode = "1"
