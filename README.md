@@ -314,6 +314,12 @@ the output, and template packs are code-equivalent (their CSS and fonts
 land in every page). Do not run it on untrusted Markdown, configs or
 packs — and see [SECURITY.md](SECURITY.md) for reporting vulnerabilities.
 
+Supply chain: release binaries carry GitHub build provenance attestations
+(`gh attestation verify mdprint-<version>-<target>.zip --repo filip-cokesh/mdprint`),
+crates.io releases are published through Trusted Publishing from the tagged
+CI run (no long-lived tokens), and every workflow action is pinned to a
+commit SHA with Dependabot keeping the pins current.
+
 ## License
 
 Licensed under either of [MIT](LICENSE-MIT) or
