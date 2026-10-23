@@ -136,8 +136,8 @@ pub fn page_html(
         .render_str(
             assets::PRINT_CSS,
             minijinja::context! {
-                page_size => cfg.paper_size,
-                page_margin => cfg.paper_margin,
+                page_size => cfg.paper_size.as_str(),
+                page_margin => cfg.paper_margin.as_str(),
                 page_numbers => cfg.page_numbers,
             },
         )
@@ -209,8 +209,8 @@ pub fn page_html(
         .iter()
         .map(|l| {
             minijinja::context! {
-                label => l.label,
-                url => l.url,
+                label => l.label.as_str(),
+                url => l.url.as_str(),
                 icon => l.icon_data_uri.clone().map(safe),
             }
         })
