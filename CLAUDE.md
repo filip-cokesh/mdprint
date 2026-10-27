@@ -52,7 +52,9 @@ highlight → images** → `render` (vlastní formatter → HTML → minijinja �
   s řádkem. Pozn.: katex-rs má nedeterministické pořadí atributů — snapshot testy
   normalizují (viz `tests/snapshots.rs::normalize`)
 - `highlight.rs` — syntect (default-fancy), per-line `<span class="line">`
-  s vyvažováním spanů přes hranice řádků (`wrap_lines`)
+  s vyvažováním spanů přes hranice řádků (`wrap_lines`); `\n` uvnitř spanu
+  a tisk cílí jen na `pre > code > .line` (syntect dává třídu `line` i scope
+  spanům)
 - `images.rs` — kopie do `img_<název>/` jako `<slug>-<blake3/8hex>.<ext>`, dedup
   podle obsahu, `.manifest.json` (úklid maže jen osiřelé z manifestu); `--fetch`
   přes ureq, jméno deterministicky z URL = disková cache
@@ -61,7 +63,8 @@ highlight → images** → `render` (vlastní formatter → HTML → minijinja �
   + volitelnými logy a fonty; `[company]` defaulty z packu přebíjí mdprint.toml
 - `render.rs` — `create_formatter!` (figure/figcaption „Obr. N"), minijinja
   šablona (brand hlavička/patička `.brand-*` při aktivním packu), TOC přes
-  comrak `Anchorizer`, české datum s U+00A0
+  comrak `Anchorizer` (`[toc] depth`, `numbering = false` → třída `toc-plain`;
+  `missing_pages_warning` pro kotvy chybějící v PDF), české datum s U+00A0
 - `paginate.rs` — headless Chrome/Edge (`std::process::Command`, vlastní
   `--user-data-dir`): `--toc-pages` = 3 sondy (radio `fs-*` přepnuté přes
   `with_font_size`, obsah se zástupným „000“ pevné šířky 3ch → stejný layout),

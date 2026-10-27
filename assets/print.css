@@ -74,7 +74,9 @@
   span.katex.math-wide-1 { font-size: 0.85em; }
 
   /* dlouhé řádky kódu: zalamovat; visutou indentaci zalomených řádků
-     zajistí per-line spany ze syntect (fáze 3): pre .line */
+     zajistí per-line spany z highlight.rs. Jen přímí potomci code — syntect
+     dělá třídy ze scope po slovech, takže `.line` nese i vnořený span
+     (`punctuation.separator.continuation.line.shell`, #15) */
   pre {
     white-space: pre-wrap;
     overflow-wrap: anywhere;
@@ -82,7 +84,7 @@
     background: #fff;
     border: 1px solid #999;
   }
-  pre .line {
+  pre > code > .line {
     display: block;
     padding-left: 2ch;
     text-indent: -2ch;
@@ -133,10 +135,12 @@
   html:has(#fs-large:checked) nav.toc .toc-page::after { content: attr(data-l); }
 
   /* seznam obrázků / tabulek: na nové stránce (druhý seznam hned za prvním);
-     položka bez counteru → žádný grid, odkaz je flex řádek s vodicími tečkami */
+     položka bez counteru (i obsah s [toc] numbering = false) → žádný grid,
+     odkaz je flex řádek s vodicími tečkami */
   nav.toc.lof, nav.toc.lot { break-before: page; }
   nav.toc.lof + nav.toc.lot { break-before: auto; }
-  nav.toc.lof.toc-pages li, nav.toc.lot.toc-pages li { display: block; }
+  nav.toc.lof.toc-pages li, nav.toc.lot.toc-pages li,
+  nav.toc.toc-plain.toc-pages li { display: block; }
   nav.toc .toc-num { flex: none; }
 
   /* … ale ne u interních kotev, poznámek pod čarou a křížových odkazů */

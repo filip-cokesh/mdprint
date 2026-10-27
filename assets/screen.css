@@ -313,6 +313,8 @@ nav.toc .toc-leader, nav.toc .toc-page { display: none; }
    položky nese „Obr. 1“ místo CSS counteru obsahu */
 nav.toc.lof, nav.toc.lot { margin: 2.5rem 0 0; }
 nav.toc.lof li::before, nav.toc.lot li::before { content: none; counter-increment: none; }
+/* [toc] numbering = false: nadpisy nesou vlastní čísla */
+nav.toc.toc-plain li::before { content: none; counter-increment: none; }
 .toc-num {
   font-weight: 600;
   color: var(--c-muted);

@@ -176,6 +176,10 @@ toc_pages = false               # page numbers in the TOC (needs Chrome/Edge)
 font_size = "normal"            # small | normal | large: initial A/A/A and --pdf size
 browser = "C:/path/chrome.exe"  # optional; else MDPRINT_BROWSER or auto-detect
 
+[toc]
+numbering = true                # "2.1" before entries; off when headings carry own numbers
+depth = 3                       # deepest heading level in the TOC (1–6)
+
 [math]                          # math size in em relative to surrounding text
 inline = 0.95                   # allowed range 0.5–2.0; defaults calibrated
 display = 1.0                   # for Libertinus (page-fit shrink adapts)
@@ -214,7 +218,8 @@ Arguments:
 Options:
   -o, --output <OUTPUT>      Output HTML file (default: next to input, .html)
       --lang <LANG>          Document language [possible values: cs, en, de]
-      --toc                  Generate a table of contents (headings 1-3)
+      --toc                  Generate a table of contents (headings 1-3,
+                             see [toc] depth)
       --toc-pages            Add print page numbers to the TOC and lists
                              (implies --toc; needs Chrome or Edge)
       --lof                  List of figures at the end of the document
@@ -291,6 +296,9 @@ Table: Input data {#tbl:data}
   `--pdf` output always matches.
 - Turn off the browser's own *Headers and footers* in the print dialog —
   Chrome then leaves the footer to mdprint.
+- An entry whose heading has no anchor in the measured PDF (e.g. a template
+  pushes it off the printable area) is listed in a warning instead of
+  silently losing its number.
 - Without a browser, `--toc-pages` warns and writes the TOC without numbers;
   `--pdf` fails. Everything else still needs no runtime dependency.
 

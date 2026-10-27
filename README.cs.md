@@ -122,7 +122,9 @@ Viz okomentovaný příklad v [README.md](README.md#configuration) — klíče:
 numbering, list), `[tables]` (prefix, list), `[equations]` (numbering =
 labeled | all | none), `[fonts]` (serif, sans, mono), `[math]` (inline,
 display — velikost matematiky v em, rozsah 0,5–2,0; zmenšování širokých
-vzorců pro tisk se přizpůsobí), `[print]` (page_numbers, toc_pages,
+vzorců pro tisk se přizpůsobí), `[toc]` (numbering — vypnout u nadpisů
+s vlastními čísly, depth — nejhlubší úroveň nadpisu v obsahu, 1–6,
+výchozí 3), `[print]` (page_numbers, toc_pages,
 font_size, browser), `[company]` (patička brandované šablony).
 CLI přepínače konfiguraci přebíjejí.
 
@@ -180,6 +182,8 @@ Tabulka: Vstupní data {#tbl:data}
   z Chrome/Edge s formátem a okraji dokumentu při měřítku 100 %; jiný
   prohlížeč nebo změna měřítka v dialogu je může posunout. Výstup `--pdf`
   sedí vždy.
+- Položky, jejichž kotva se v měřeném PDF nenajde (např. šablona posune
+  nadpis mimo tiskovou plochu), vypíše varování — číslo tiše nezmizí.
 - V dialogu tisku vypněte *Záhlaví a zápatí* prohlížeče — Chrome pak
   patičku přenechá mdprintu.
 - Prohlížeč se hledá automaticky (Chrome, Edge, Chromium), jinak

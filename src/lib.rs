@@ -115,14 +115,14 @@ pub fn run_full(cli: &Cli) -> Result<RunOutput> {
 
     let title = parse::document_title(front_matter.as_ref(), root, &stem);
     let toc_entries = if cfg.toc {
-        render::toc_entries(root)
+        render::toc_entries(root, cfg.toc_depth)
     } else {
         Vec::new()
     };
     // obsah a seznamy: s --toc-pages nejdřív se zástupnými čísly „000“
     let render_lists = |pages: &render::TocPages| {
         (
-            render::render_toc(&toc_entries, cfg.lang, pages.clone()),
+            render::render_toc(&toc_entries, cfg.lang, pages.clone(), cfg.toc_numbering),
             render::render_list(
                 render::ListKind::Figures,
                 &lof_entries,
@@ -174,7 +174,19 @@ pub fn run_full(cli: &Cli) -> Result<RunOutput> {
         let measured = paginate::find_browser(cfg.browser.as_deref())
             .and_then(|b| paginate::measure(&b, &page, &out_dir, &stem));
         let final_mode = match &measured {
-            Ok(map) => render::TocPages::Numbers(map),
+            Ok(map) => {
+                // kotva chybí v PDF (Chrome pro ni nevytvořil named destination,
+                // např. nadpis posunutý šablonou mimo tiskovou plochu)
+                let entries = toc_entries
+                    .iter()
+                    .map(|e| (&e.id, &e.text))
+                    .chain(lof_entries.iter().map(|e| (&e.id, &e.text)))
+                    .chain(lot_entries.iter().map(|e| (&e.id, &e.text)));
+                if let Some(w) = render::missing_pages_warning(entries, map) {
+                    warnings.push(w);
+                }
+                render::TocPages::Numbers(map)
+            }
             Err(e) => {
                 warnings.push(format!("čísla stran v obsahu a seznamech vynechána: {e:#}"));
                 render::TocPages::Off

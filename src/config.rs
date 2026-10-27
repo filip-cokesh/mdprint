@@ -21,7 +21,18 @@ pub struct FileConfig {
     pub fonts: Option<Fonts>,
     pub math: Option<Math>,
     pub print: Option<Print>,
+    pub toc: Option<Toc>,
     pub company: Option<Company>,
+}
+
+/// Obsah (`[toc]`): číslování položek a hloubka.
+#[derive(Deserialize, Default, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct Toc {
+    /// Číslovat položky „2.1“ (výchozí true; vypnout u nadpisů s vlastními čísly)
+    pub numbering: Option<bool>,
+    /// Nejhlubší úroveň nadpisu v obsahu, 1–6 (výchozí 3)
+    pub depth: Option<u8>,
 }
 
 /// Tisk (`[print]`): číslování stránek, čísla v obsahu, výchozí velikost písma.
@@ -133,6 +144,10 @@ pub struct Config {
     /// `[company]` z mdprint.toml (přebíjí defaulty z pack.toml).
     pub company: Company,
     pub toc: bool,
+    /// Číslovat položky obsahu (CSS čítač „2.1“).
+    pub toc_numbering: bool,
+    /// Nejhlubší úroveň nadpisu v obsahu.
+    pub toc_depth: u8,
     /// Čísla stran v obsahu (implikuje `toc`).
     pub toc_pages: bool,
     /// Číslo stránky v patičce tisku.
@@ -236,6 +251,13 @@ impl Config {
             );
         }
 
+        let toc = file_cfg.toc.unwrap_or_default();
+        let toc_depth = toc.depth.unwrap_or(3);
+        anyhow::ensure!(
+            (1..=6).contains(&toc_depth),
+            "[toc] depth = {toc_depth} je mimo rozsah 1–6 (úroveň nadpisu)"
+        );
+
         Ok(Config {
             lang,
             paper_size: paper.size.unwrap_or_else(|| "A4".into()),
@@ -264,6 +286,8 @@ impl Config {
             pack_dir,
             company,
             toc: cli.toc || toc_pages,
+            toc_numbering: toc.numbering.unwrap_or(true),
+            toc_depth,
             toc_pages,
             page_numbers,
             font_size,
