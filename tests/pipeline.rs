@@ -351,6 +351,39 @@ fn lang_priority_cli_over_front_matter() {
 }
 
 #[test]
+fn toc_depth_and_numbering_from_toml() {
+    let dir = tempfile::tempdir().unwrap();
+    let input = dir.path().join("kniha.md");
+    fs::write(
+        &input,
+        "# 1 Úvod\n\ntext\n\n## 1.1 Cíle\n\ntext\n\n### 1.1.1 Detail\n\ntext\n",
+    )
+    .unwrap();
+    let mut c = cli(input.clone());
+    c.toc = true;
+
+    // výchozí: číslovaný obsah do úrovně 3
+    let html = fs::read_to_string(mdprint::run(&c).unwrap()).unwrap();
+    assert!(html.contains("<nav class=\"toc\">"));
+    assert!(html.contains("<a href=\"#111-detail\">"));
+
+    fs::write(
+        dir.path().join("mdprint.toml"),
+        "[toc]\nnumbering = false\ndepth = 2\n",
+    )
+    .unwrap();
+    let html = fs::read_to_string(mdprint::run(&c).unwrap()).unwrap();
+    assert!(html.contains("<nav class=\"toc toc-plain\">"));
+    assert!(html.contains("<a href=\"#11-cíle\">"));
+    assert!(!html.contains("<a href=\"#111-detail\">"));
+
+    // mimo rozsah = čitelná chyba
+    fs::write(dir.path().join("mdprint.toml"), "[toc]\ndepth = 0\n").unwrap();
+    let err = mdprint::run(&c).unwrap_err();
+    assert!(err.to_string().contains("mimo rozsah 1–6"), "{err}");
+}
+
+#[test]
 fn math_size_from_toml_and_range_validation() {
     let dir = tempfile::tempdir().unwrap();
     let input = dir.path().join("m.md");

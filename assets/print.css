@@ -135,10 +135,12 @@
   html:has(#fs-large:checked) nav.toc .toc-page::after { content: attr(data-l); }
 
   /* seznam obrázků / tabulek: na nové stránce (druhý seznam hned za prvním);
-     položka bez counteru → žádný grid, odkaz je flex řádek s vodicími tečkami */
+     položka bez counteru (i obsah s [toc] numbering = false) → žádný grid,
+     odkaz je flex řádek s vodicími tečkami */
   nav.toc.lof, nav.toc.lot { break-before: page; }
   nav.toc.lof + nav.toc.lot { break-before: auto; }
-  nav.toc.lof.toc-pages li, nav.toc.lot.toc-pages li { display: block; }
+  nav.toc.lof.toc-pages li, nav.toc.lot.toc-pages li,
+  nav.toc.toc-plain.toc-pages li { display: block; }
   nav.toc .toc-num { flex: none; }
 
   /* … ale ne u interních kotev, poznámek pod čarou a křížových odkazů */

@@ -311,11 +311,10 @@ pub enum TocPages<'a> {
     Numbers(&'a std::collections::HashMap<String, PageTriple>),
 }
 
-/// Nadpisy úrovní 1–3 pro obsah. Kotvy počítá stejný `Anchorizer` jako
+/// Nadpisy úrovní 1–`max_level` pro obsah. Kotvy počítá stejný `Anchorizer` jako
 /// comrak při renderu — id proto sedí včetně deduplikace, pokud se
 /// anchorizují všechny nadpisy ve stejném pořadí.
-pub fn toc_entries<'a>(root: &'a AstNode<'a>) -> Vec<TocEntry> {
-    const MAX_LEVEL: u8 = 3;
+pub fn toc_entries<'a>(root: &'a AstNode<'a>, max_level: u8) -> Vec<TocEntry> {
     let mut anchorizer = comrak::Anchorizer::new();
     let mut entries = Vec::new();
     for node in root.descendants() {
@@ -325,7 +324,7 @@ pub fn toc_entries<'a>(root: &'a AstNode<'a>) -> Vec<TocEntry> {
         };
         let text = collect_text(node);
         let id = anchorizer.anchorize(&text);
-        if level <= MAX_LEVEL {
+        if level <= max_level {
             entries.push(TocEntry { level, id, text });
         }
     }
@@ -335,7 +334,13 @@ pub fn toc_entries<'a>(root: &'a AstNode<'a>) -> Vec<TocEntry> {
 /// Obsah (`--toc`): vnořené `<ol>`; s `pages` ≠ `Off` nese každá položka
 /// vodicí tečky a `<span class="toc-page" data-s data-m data-l>` — print.css
 /// zobrazí číslo podle zvolené velikosti písma, na obrazovce je skryté.
-pub fn render_toc(entries: &[TocEntry], lang: Lang, pages: TocPages) -> Option<String> {
+/// `numbered = false` přidá třídu `toc-plain` (bez CSS čítače „2.1“).
+pub fn render_toc(
+    entries: &[TocEntry],
+    lang: Lang,
+    pages: TocPages,
+    numbered: bool,
+) -> Option<String> {
     if entries.is_empty() {
         return None;
     }
@@ -345,11 +350,13 @@ pub fn render_toc(entries: &[TocEntry], lang: Lang, pages: TocPages) -> Option<S
         Lang::En => "Contents",
         Lang::De => "Inhalt",
     };
-    let class = if matches!(pages, TocPages::Off) {
-        "toc"
-    } else {
-        "toc toc-pages"
-    };
+    let mut class = String::from("toc");
+    if !matches!(pages, TocPages::Off) {
+        class.push_str(" toc-pages");
+    }
+    if !numbered {
+        class.push_str(" toc-plain");
+    }
     let mut html = format!("<nav class=\"{class}\">\n<h2 class=\"toc-title\">{title}</h2>\n");
     let mut depth = 0u8;
     for entry in entries {
@@ -416,6 +423,37 @@ fn page_suffix(pages: &TocPages, id: &str) -> String {
             page_span(triple.map(|p| p.map(|n| n.to_string()).unwrap_or_default()))
         }
     }
+}
+
+/// Varování pro položky obsahu a seznamů, jejichž kotva v měřeném PDF chybí
+/// (aspoň v jedné velikosti písma) — číslo strany by tiše vypadlo (#17).
+pub fn missing_pages_warning<'e>(
+    entries: impl IntoIterator<Item = (&'e String, &'e String)>,
+    pages: &std::collections::HashMap<String, PageTriple>,
+) -> Option<String> {
+    const SHOWN: usize = 10;
+    let missing: Vec<&String> = entries
+        .into_iter()
+        .filter(|(id, _)| pages.get(*id).is_none_or(|t| t.iter().any(Option::is_none)))
+        .map(|(_, text)| text)
+        .collect();
+    if missing.is_empty() {
+        return None;
+    }
+    let mut names: Vec<String> = missing
+        .iter()
+        .take(SHOWN)
+        .map(|t| format!("„{t}“"))
+        .collect();
+    if missing.len() > SHOWN {
+        names.push(format!("a dalších {}", missing.len() - SHOWN));
+    }
+    Some(format!(
+        "čísla stran chybí u {} položek obsahu/seznamů — kotva se v PDF nenašla \
+         (např. šablona posouvá nadpis mimo tiskovou plochu): {}",
+        missing.len(),
+        names.join(", ")
+    ))
 }
 
 /// Seznam obrázků (`--lof`) nebo tabulek (`--lot`).
@@ -527,7 +565,7 @@ mod tests {
 
     #[test]
     fn toc_without_pages_keeps_plain_links() {
-        let html = render_toc(&entries(), Lang::Cs, TocPages::Off).unwrap();
+        let html = render_toc(&entries(), Lang::Cs, TocPages::Off, true).unwrap();
         assert!(html.starts_with("<nav class=\"toc\">"));
         assert!(html.contains("<a href=\"#úvod\">Úvod &amp; cíle</a>"));
         assert!(!html.contains("toc-page"));
@@ -535,7 +573,7 @@ mod tests {
 
     #[test]
     fn toc_placeholder_and_numbers() {
-        let html = render_toc(&entries(), Lang::En, TocPages::Placeholder).unwrap();
+        let html = render_toc(&entries(), Lang::En, TocPages::Placeholder, true).unwrap();
         assert!(html.starts_with("<nav class=\"toc toc-pages\">"));
         assert_eq!(
             html.matches(r#"data-s="000" data-m="000" data-l="000""#)
@@ -545,12 +583,45 @@ mod tests {
 
         let mut map = std::collections::HashMap::new();
         map.insert("úvod".to_string(), [Some(1), Some(1), Some(2)]);
-        let html = render_toc(&entries(), Lang::En, TocPages::Numbers(&map)).unwrap();
+        let html = render_toc(&entries(), Lang::En, TocPages::Numbers(&map), true).unwrap();
         assert!(html.contains(
             r##"<a href="#úvod"><span class="toc-text">Úvod &amp; cíle</span><span class="toc-leader"></span><span class="toc-page" data-s="1" data-m="1" data-l="2"></span></a>"##
         ));
         // chybějící cíl → prázdné číslo, ne pád
         assert!(html.contains(r#"data-s="" data-m="" data-l="""#));
+    }
+
+    #[test]
+    fn toc_without_numbering_gets_plain_class() {
+        let html = render_toc(&entries(), Lang::Cs, TocPages::Off, false).unwrap();
+        assert!(html.starts_with("<nav class=\"toc toc-plain\">"));
+        let html = render_toc(&entries(), Lang::Cs, TocPages::Placeholder, false).unwrap();
+        assert!(html.starts_with("<nav class=\"toc toc-pages toc-plain\">"));
+    }
+
+    #[test]
+    fn missing_pages_warning_lists_entries_without_anchor() {
+        let entries = entries();
+        let pairs = || entries.iter().map(|e| (&e.id, &e.text));
+        let mut map = std::collections::HashMap::new();
+        map.insert("úvod".to_string(), [Some(1), Some(1), Some(1)]);
+        map.insert("detail".to_string(), [Some(2), Some(2), Some(3)]);
+        assert_eq!(missing_pages_warning(pairs(), &map), None);
+
+        // chybí úplně / jen v jedné velikosti písma
+        map.remove("úvod");
+        map.insert("detail".to_string(), [Some(2), None, Some(3)]);
+        let w = missing_pages_warning(pairs(), &map).unwrap();
+        assert!(w.contains("u 2 položek"), "{w}");
+        assert!(w.contains("„Úvod & cíle“, „Detail“"), "{w}");
+
+        // dlouhý seznam se zkrátí
+        let many: Vec<(String, String)> = (0..13)
+            .map(|i| (format!("h{i}"), format!("Nadpis {i}")))
+            .collect();
+        let w = missing_pages_warning(many.iter().map(|(i, t)| (i, t)), &map).unwrap();
+        assert!(w.contains("„Nadpis 9“, a dalších 3"), "{w}");
+        assert!(!w.contains("Nadpis 10"), "{w}");
     }
 
     #[test]

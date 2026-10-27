@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+- `[toc] numbering = false` turns off the "2.1" counters in the TOC, for
+  documents whose headings carry their own numbers (#17).
+- `[toc] depth` (1–6, default 3) sets the deepest heading level in the
+  TOC (#17).
+- `--toc-pages` warns about TOC / list entries whose anchor is missing in
+  the measured PDF instead of silently leaving them without a number (#17).
+
+### Fixed
+- Print: code blocks were double-spaced — the newline between per-line
+  spans added an empty line under `pre-wrap` (#16).
+- Print: the line-continuation backslash in bash blocks was set on its own
+  line — syntect gives it the class `line`, which matched the print rule
+  for mdprint's line spans (#15).
+
 ## [0.9.0] - 2026-10-22
 
 ### Added
