@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.10.0] - 2026-10-27
 
 ### Added
 - `[toc] numbering = false` turns off the "2.1" counters in the TOC, for
@@ -20,6 +20,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Print: the line-continuation backslash in bash blocks was set on its own
   line — syntect gives it the class `line`, which matched the print rule
   for mdprint's line spans (#15).
+
+### Security
+- rustls 0.23.46 (used by `--fetch`) after a Dependabot security alert.
+- Release binaries carry GitHub build provenance attestations
+  (`gh attestation verify mdprint-<version>-<target>.zip --repo
+  filip-cokesh/mdprint`); CI actions are pinned to commit SHAs and the
+  crate is published via crates.io Trusted Publishing.
+
+### Changed
+- Dependencies: comrak 0.55, minijinja 3, toml 1.1, base64 0.23 and patch
+  updates; output is unchanged apart from the fixes above.
+- Demo documents and PDFs in `docs/` regenerated.
 
 ## [0.9.0] - 2026-10-22
 
