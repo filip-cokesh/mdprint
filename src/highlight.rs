@@ -100,7 +100,9 @@ fn theme_css(name: &str) -> Result<String> {
     css_for_theme_with_class_style(theme, CLASS_STYLE).context("generování CSS tématu selhalo")
 }
 
-/// Zabalí každý řádek do `<span class="line">…</span>`. Spany syntectu mohou
+/// Zabalí každý řádek do `<span class="line">…\n</span>`. Konec řádku je
+/// uvnitř spanu: v tisku má `.line` `display: block` a `\n` mezi bloky by
+/// v `pre-wrap` přidal prázdný řádek (#16). Spany syntectu mohou
 /// přesahovat konce řádků (víceřádkové stringy apod.), proto se na hranici
 /// řádku otevřené spany uzavřou a na začátku dalšího znovu otevřou. Vstup
 /// obsahuje jen `<span class="…">`, `</span>` a escapovaný text, `<` se tedy
@@ -155,7 +157,7 @@ fn wrap_lines(html: &str) -> String {
     for line in &lines {
         out.push_str("<span class=\"line\">");
         out.push_str(line);
-        out.push_str("</span>\n");
+        out.push_str("\n</span>");
     }
     out
 }
@@ -229,5 +231,25 @@ mod tests {
         // prázdné řádky uprostřed bloku se zachovávají
         let blocks = html_blocks("```rust\nlet a = 1;\n\nlet b = 2;\n```\n");
         assert_eq!(blocks[0].matches("<span class=\"line\">").count(), 3);
+    }
+
+    #[test]
+    fn newline_is_inside_line_span() {
+        // \n mezi blokovými spany by v tisku (pre-wrap) přidal prázdný řádek (#16)
+        let blocks = html_blocks("```text\nline 1\n\nline 3\n```\n");
+        let html = &blocks[0];
+        assert_eq!(html.matches("\n</span>").count(), 3);
+        assert!(!html.contains("</span>\n<span class=\"line\">"));
+    }
+
+    #[test]
+    fn print_css_targets_only_own_line_spans() {
+        // syntect dělá třídy ze scope po slovech: pokračovací `\` v bashi má
+        // třídu `… line shell` → print.css nesmí cílit na každé `.line` (#15)
+        let blocks = html_blocks("```bash\nls \\\n  -l\n```\n");
+        assert!(blocks[0].contains("continuation line shell"));
+        let print_css = crate::assets::PRINT_CSS;
+        assert!(print_css.contains("pre > code > .line"));
+        assert!(!print_css.contains("pre .line"));
     }
 }
