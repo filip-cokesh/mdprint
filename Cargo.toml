@@ -38,7 +38,7 @@ syntect = { version = "5.3.0", default-features = false, features = ["default-fa
 fancy-regex = "0.19.0"
 hyphenation = { version = "0.8.4", features = ["embed_all"] }
 ureq = "3.4.0"
-lopdf = { version = "0.45", default-features = false }
+lopdf = { version = "0.46", default-features = false }
 tempfile = "3"
 
 [target.'cfg(windows)'.build-dependencies]
