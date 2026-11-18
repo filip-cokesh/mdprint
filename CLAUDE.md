@@ -63,7 +63,9 @@ highlight → images** → `render` (vlastní formatter → HTML → minijinja �
   + volitelnými logy a fonty; `[company]` defaulty z packu přebíjí mdprint.toml
 - `render.rs` — `create_formatter!` (figure/figcaption „Obr. N"), minijinja
   šablona (brand hlavička/patička `.brand-*` při aktivním packu), TOC přes
-  comrak `Anchorizer` (`[toc] depth`, `numbering = false` → třída `toc-plain`;
+  comrak `Anchorizer` (`[toc] depth`; `numbering` true/false/auto, auto =
+  `headings_self_numbered` — souvislá posloupnost vlastních čísel nadpisů →
+  třída `toc-plain`;
   `missing_pages_warning` pro kotvy chybějící v PDF), české datum s U+00A0
 - `paginate.rs` — headless Chrome/Edge (`std::process::Command`, vlastní
   `--user-data-dir`): `--toc-pages` = 3 sondy (radio `fs-*` přepnuté přes

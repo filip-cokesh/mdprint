@@ -177,7 +177,8 @@ font_size = "normal"            # small | normal | large: initial A/A/A and --pd
 browser = "C:/path/chrome.exe"  # optional; else MDPRINT_BROWSER or auto-detect
 
 [toc]
-numbering = true                # "2.1" before entries; off when headings carry own numbers
+numbering = "auto"              # "2.1" before entries: true | false | "auto" (off when
+                                # headings already carry their own numbers, e.g. "1.2 Goals")
 depth = 3                       # deepest heading level in the TOC (1–6)
 
 [math]                          # math size in em relative to surrounding text
@@ -194,7 +195,7 @@ email = "…"
 ```
 
 Documents may carry YAML front matter (`title`, `author`, `date`, `version`,
-`lang`, `template`, `page_numbers`, `toc_pages`, `font_size`, `lof`, `lot`) — `title` renders a document header, ISO dates are
+`lang`, `template`, `page_numbers`, `toc_pages`, `toc_numbering`, `font_size`, `lof`, `lot`) — `title` renders a document header, ISO dates are
 typeset the Czech way (`2. 9. 2026`), `version` shows in the byline.
 
 A **template pack** is a folder with `pack.toml`, `template.css` and optional

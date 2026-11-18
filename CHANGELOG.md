@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+- TOC numbering defaults to `"auto"`: when the headings already carry their
+  own numbers ("1 Introduction", "1.2. Goals"), the "2.1" counters are
+  dropped instead of producing "2.1 2.1 Goals". Detection requires at least
+  two numbered headings forming a consecutive sequence; unnumbered headings
+  such as "Introduction" or "References" are tolerated, and stray numbers
+  ("5 reasons why", "3D printing") are not mistaken for chapter numbers.
+  `[toc] numbering = true | false` still forces either way.
+
+### Added
+- Front matter `toc_numbering: true | false | auto` (overrides
+  `[toc] numbering`).
+
 ## [0.10.0] - 2026-10-27
 
 ### Added

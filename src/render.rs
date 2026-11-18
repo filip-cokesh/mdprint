@@ -4,6 +4,8 @@ use comrak::nodes::{AstNode, NodeValue};
 use comrak::{Options, create_formatter};
 use std::fmt::Write as _;
 
+use serde::Deserialize;
+
 use crate::assets;
 use crate::cli::Lang;
 use crate::config::Config;
@@ -286,6 +288,98 @@ fn vars_css(cfg: &Config) -> String {
         inline = cfg.math_inline,
         display = cfg.math_display,
     )
+}
+
+/// Číslování položek obsahu (`[toc] numbering`, front matter `toc_numbering`):
+/// `true` | `false` | `"auto"`.
+#[derive(Deserialize, Clone, Copy, Debug, Default, PartialEq, Eq)]
+#[serde(try_from = "TocNumberingRaw")]
+pub enum TocNumbering {
+    /// Čítač „2.1“, pokud nadpisy nenesou vlastní čísla (výchozí).
+    #[default]
+    Auto,
+    On,
+    Off,
+}
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum TocNumberingRaw {
+    Bool(bool),
+    Text(String),
+}
+
+impl TryFrom<TocNumberingRaw> for TocNumbering {
+    type Error = String;
+
+    fn try_from(raw: TocNumberingRaw) -> Result<Self, Self::Error> {
+        match raw {
+            TocNumberingRaw::Bool(true) => Ok(Self::On),
+            TocNumberingRaw::Bool(false) => Ok(Self::Off),
+            TocNumberingRaw::Text(s) if s == "auto" => Ok(Self::Auto),
+            TocNumberingRaw::Text(s) => Err(format!(
+                "neplatné číslování obsahu „{s}“ (povoleno true, false nebo \"auto\")"
+            )),
+        }
+    }
+}
+
+impl TocNumbering {
+    /// Má obsah číslovat CSS čítačem? `Auto` vypne čítač, když nadpisy
+    /// v obsahu nesou vlastní čísla (jinak by vzniklo „2.1 2.1 Cíle“).
+    pub fn resolve(self, entries: &[TocEntry]) -> bool {
+        match self {
+            Self::On => true,
+            Self::Off => false,
+            Self::Auto => !headings_self_numbered(entries),
+        }
+    }
+}
+
+/// Vlastní číslo na začátku nadpisu: „1 Úvod“, „1. Úvod“, „1.2 Cíle“,
+/// „1.2. Cíle“ (mezera i U+00A0 z typografie). „3D tisk“ ani „2026“ bez
+/// dalšího textu číslem kapitoly nejsou.
+fn heading_number(text: &str) -> Option<Vec<u32>> {
+    let prefix_len = text
+        .find(|c: char| !(c.is_ascii_digit() || c == '.'))
+        .unwrap_or(text.len());
+    let (prefix, rest) = text.split_at(prefix_len);
+    let mut chars = rest.chars();
+    if !matches!(chars.next(), Some(' ' | '\u{a0}')) || chars.as_str().trim().is_empty() {
+        return None;
+    }
+    let prefix = prefix.strip_suffix('.').unwrap_or(prefix);
+    prefix.split('.').map(|part| part.parse().ok()).collect()
+}
+
+/// Nadpisy obsahu jsou číslované autorem: aspoň dvě položky s vlastním
+/// číslem a čísla tvoří souvislou posloupnost (sourozenec = předchozí + 1,
+/// první potomek = rodič.1). Nečíslované položky („Úvod“, „Závěr“,
+/// „Literatura“) se tolerují; náhodná čísla („5 důvodů“, „2026 v číslech“)
+/// posloupnost nesplní. První číslo smí začít kdekoli (kapitola knihy).
+fn headings_self_numbered(entries: &[TocEntry]) -> bool {
+    let mut last: Option<Vec<u32>> = None;
+    let mut numbered = 0;
+    for number in entries.iter().filter_map(|e| heading_number(&e.text)) {
+        if let Some(prev) = &last {
+            let k = number.len();
+            let follows = if k == prev.len() + 1 {
+                // první podkapitola: 2 → 2.1
+                number[..k - 1] == prev[..] && number[k - 1] == 1
+            } else if k <= prev.len() {
+                // další sourozenec na stejné nebo vyšší úrovni: 2.1 → 2.2, 2.3 → 3
+                number[..k - 1] == prev[..k - 1] && number[k - 1] == prev[k - 1] + 1
+            } else {
+                false
+            };
+            if !follows {
+                return false;
+            }
+        }
+        last = Some(number);
+        numbered += 1;
+    }
+    numbered >= 2
 }
 
 /// Položka obsahu: úroveň nadpisu, id kotvy, text.
@@ -597,6 +691,70 @@ mod tests {
         assert!(html.starts_with("<nav class=\"toc toc-plain\">"));
         let html = render_toc(&entries(), Lang::Cs, TocPages::Placeholder, false).unwrap();
         assert!(html.starts_with("<nav class=\"toc toc-pages toc-plain\">"));
+    }
+
+    #[test]
+    fn heading_number_formats() {
+        let cases: &[(&str, Option<&[u32]>)] = &[
+            ("1 Úvod", Some(&[1])),
+            ("1. Úvod", Some(&[1])),
+            ("1.2 Cíle", Some(&[1, 2])),
+            ("1.2. Cíle", Some(&[1, 2])),
+            ("3\u{a0}Výsledky", Some(&[3])),
+            ("Úvod", None),
+            ("3D tisk", None),
+            ("2026", None),
+            ("1.", None),
+            ("1..2 Chyba", None),
+            (". Tečka", None),
+        ];
+        for (text, expected) in cases {
+            assert_eq!(heading_number(text).as_deref(), *expected, "{text}");
+        }
+    }
+
+    #[test]
+    fn self_numbered_headings_detection() {
+        let toc = |texts: &[&str]| -> Vec<TocEntry> {
+            texts
+                .iter()
+                .map(|t| TocEntry {
+                    level: 1,
+                    id: String::new(),
+                    text: (*t).into(),
+                })
+                .collect()
+        };
+        let cases: &[(&[&str], bool)] = &[
+            (&["1 Úvod", "1.1 Cíle", "1.2 Metody", "2 Výpočet"], true),
+            (&["1. Úvod", "2. Teorie", "2.1. Model", "3. Závěr"], true),
+            // nečíslované okraje se tolerují
+            (
+                &["Úvod", "1 Teorie", "2 Výpočet", "Závěr", "Literatura"],
+                true,
+            ),
+            // kapitola knihy začíná libovolným číslem
+            (&["3 Nosníky", "3.1 Průhyb", "3.2 Ohyb", "4 Desky"], true),
+            // hlubší úroveň zpět o dvě: 2.1.3 → 3
+            (&["2 A", "2.1 B", "2.1.1 C", "3 D"], true),
+            (&["Úvod", "Teorie", "Závěr"], false),
+            // jediné číslo nestačí
+            (&["Úvod", "1 Teorie", "Závěr"], false),
+            // náhodná čísla netvoří posloupnost
+            (&["5 důvodů proč", "2026 v číslech"], false),
+            (&["3D tisk", "Úvod"], false),
+            (&["1 A", "3 B"], false),
+            (&["1 A", "1.2 B"], false),
+            (&["1 A", "1.1.1 B"], false),
+            (&[], false),
+        ];
+        for (texts, expected) in cases {
+            assert_eq!(headings_self_numbered(&toc(texts)), *expected, "{texts:?}");
+        }
+        assert!(!TocNumbering::Auto.resolve(&toc(&["1 A", "2 B"])));
+        assert!(TocNumbering::Auto.resolve(&toc(&["A", "B"])));
+        assert!(TocNumbering::On.resolve(&toc(&["1 A", "2 B"])));
+        assert!(!TocNumbering::Off.resolve(&toc(&["A", "B"])));
     }
 
     #[test]

@@ -108,6 +108,8 @@ page_numbers: true    # číslo stránky v tisku (výchozí zapnuto)
 toc_pages: false      # čísla stran v obsahu (zapne i obsah)
 lof: false            # seznam obrázků na konci dokumentu
 lot: false            # seznam tabulek na konci dokumentu
+toc_numbering: auto   # čísla „2.1“ v obsahu: true | false | auto (vypne je, když
+                      # nadpisy nesou vlastní čísla, např. „1.2 Cíle“)
 ---
 ```
 
@@ -122,8 +124,8 @@ Viz okomentovaný příklad v [README.md](README.md#configuration) — klíče:
 numbering, list), `[tables]` (prefix, list), `[equations]` (numbering =
 labeled | all | none), `[fonts]` (serif, sans, mono), `[math]` (inline,
 display — velikost matematiky v em, rozsah 0,5–2,0; zmenšování širokých
-vzorců pro tisk se přizpůsobí), `[toc]` (numbering — vypnout u nadpisů
-s vlastními čísly, depth — nejhlubší úroveň nadpisu v obsahu, 1–6,
+vzorců pro tisk se přizpůsobí), `[toc]` (numbering — true | false | "auto",
+výchozí auto vypne čísla „2.1“ u nadpisů s vlastními čísly, depth — nejhlubší úroveň nadpisu v obsahu, 1–6,
 výchozí 3), `[print]` (page_numbers, toc_pages,
 font_size, browser), `[company]` (patička brandované šablony).
 CLI přepínače konfiguraci přebíjejí.

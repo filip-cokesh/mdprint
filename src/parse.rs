@@ -53,6 +53,8 @@ pub struct FrontMatter {
     pub lof: Option<bool>,
     /// Seznam tabulek na konci dokumentu.
     pub lot: Option<bool>,
+    /// Číslování obsahu: true | false | auto (přebíjí `[toc] numbering`).
+    pub toc_numbering: Option<crate::render::TocNumbering>,
 }
 
 /// YAML skalár (string i číslo) → `Option<String>`.
