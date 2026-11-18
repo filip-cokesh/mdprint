@@ -5,6 +5,7 @@ use serde::Deserialize;
 
 use crate::cli::{Cli, FontSize, Lang, PdfMode};
 use crate::parse::FrontMatter;
+use crate::render::TocNumbering;
 use crate::xref::EqNumbering;
 
 /// `mdprint.toml` vedle vstupu (nebo `--config`). Všechna pole volitelná.
@@ -29,8 +30,9 @@ pub struct FileConfig {
 #[derive(Deserialize, Default, Debug)]
 #[serde(deny_unknown_fields)]
 pub struct Toc {
-    /// Číslovat položky „2.1“ (výchozí true; vypnout u nadpisů s vlastními čísly)
-    pub numbering: Option<bool>,
+    /// Číslovat položky „2.1“: true | false | "auto" (výchozí; vypne čítač,
+    /// když nadpisy nesou vlastní čísla)
+    pub numbering: Option<TocNumbering>,
     /// Nejhlubší úroveň nadpisu v obsahu, 1–6 (výchozí 3)
     pub depth: Option<u8>,
 }
@@ -144,8 +146,8 @@ pub struct Config {
     /// `[company]` z mdprint.toml (přebíjí defaulty z pack.toml).
     pub company: Company,
     pub toc: bool,
-    /// Číslovat položky obsahu (CSS čítač „2.1“).
-    pub toc_numbering: bool,
+    /// Číslování položek obsahu (CSS čítač „2.1“); `Auto` se rozhodne podle nadpisů.
+    pub toc_numbering: TocNumbering,
     /// Nejhlubší úroveň nadpisu v obsahu.
     pub toc_depth: u8,
     /// Čísla stran v obsahu (implikuje `toc`).
@@ -286,7 +288,10 @@ impl Config {
             pack_dir,
             company,
             toc: cli.toc || toc_pages,
-            toc_numbering: toc.numbering.unwrap_or(true),
+            toc_numbering: front_matter
+                .and_then(|f| f.toc_numbering)
+                .or(toc.numbering)
+                .unwrap_or_default(),
             toc_depth,
             toc_pages,
             page_numbers,

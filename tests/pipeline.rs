@@ -351,7 +351,7 @@ fn lang_priority_cli_over_front_matter() {
 }
 
 #[test]
-fn toc_depth_and_numbering_from_toml() {
+fn toc_depth_and_numbering_from_config() {
     let dir = tempfile::tempdir().unwrap();
     let input = dir.path().join("kniha.md");
     fs::write(
@@ -362,20 +362,58 @@ fn toc_depth_and_numbering_from_toml() {
     let mut c = cli(input.clone());
     c.toc = true;
 
-    // výchozí: číslovaný obsah do úrovně 3
+    // výchozí auto: nadpisy nesou vlastní čísla → bez čítače, do úrovně 3
     let html = fs::read_to_string(mdprint::run(&c).unwrap()).unwrap();
-    assert!(html.contains("<nav class=\"toc\">"));
+    assert!(html.contains("<nav class=\"toc toc-plain\">"));
     assert!(html.contains("<a href=\"#111-detail\">"));
 
+    // numbering = true vynutí čítač i nad číslovanými nadpisy
     fs::write(
         dir.path().join("mdprint.toml"),
-        "[toc]\nnumbering = false\ndepth = 2\n",
+        "[toc]\nnumbering = true\ndepth = 2\n",
     )
     .unwrap();
     let html = fs::read_to_string(mdprint::run(&c).unwrap()).unwrap();
-    assert!(html.contains("<nav class=\"toc toc-plain\">"));
+    assert!(html.contains("<nav class=\"toc\">"));
     assert!(html.contains("<a href=\"#11-cíle\">"));
     assert!(!html.contains("<a href=\"#111-detail\">"));
+
+    // front matter přebíjí toml
+    let fm_input = dir.path().join("fm.md");
+    fs::write(
+        &fm_input,
+        "---\ntoc_numbering: auto\n---\n# 1 Úvod\n\n## 1.1 Cíle\n",
+    )
+    .unwrap();
+    let mut c_fm = cli(fm_input);
+    c_fm.toc = true;
+    let html = fs::read_to_string(mdprint::run(&c_fm).unwrap()).unwrap();
+    assert!(html.contains("<nav class=\"toc toc-plain\">"));
+
+    // nečíslované nadpisy: auto nechá čítač
+    let plain_input = dir.path().join("plain.md");
+    fs::write(&plain_input, "# Úvod\n\n## Cíle\n").unwrap();
+    fs::write(
+        dir.path().join("mdprint.toml"),
+        "[toc]\nnumbering = \"auto\"\n",
+    )
+    .unwrap();
+    let mut c_plain = cli(plain_input);
+    c_plain.toc = true;
+    let html = fs::read_to_string(mdprint::run(&c_plain).unwrap()).unwrap();
+    assert!(html.contains("<nav class=\"toc\">"));
+
+    // neznámá hodnota = čitelná chyba
+    fs::write(
+        dir.path().join("mdprint.toml"),
+        "[toc]\nnumbering = \"ano\"\n",
+    )
+    .unwrap();
+    let err = mdprint::run(&c).unwrap_err();
+    assert!(
+        format!("{err:#}").contains("neplatné číslování obsahu „ano“"),
+        "{err:#}"
+    );
 
     // mimo rozsah = čitelná chyba
     fs::write(dir.path().join("mdprint.toml"), "[toc]\ndepth = 0\n").unwrap();

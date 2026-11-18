@@ -119,10 +119,11 @@ pub fn run_full(cli: &Cli) -> Result<RunOutput> {
     } else {
         Vec::new()
     };
+    let toc_numbered = cfg.toc_numbering.resolve(&toc_entries);
     // obsah a seznamy: s --toc-pages nejdřív se zástupnými čísly „000“
     let render_lists = |pages: &render::TocPages| {
         (
-            render::render_toc(&toc_entries, cfg.lang, pages.clone(), cfg.toc_numbering),
+            render::render_toc(&toc_entries, cfg.lang, pages.clone(), toc_numbered),
             render::render_list(
                 render::ListKind::Figures,
                 &lof_entries,
